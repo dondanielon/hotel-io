@@ -1,0 +1,6 @@
+LAS IDEAS ESTAN DEFINIDAS POR IMPORTANCIA, SEGUN CUANTOS SIMBOLOS
+POUND/HASHTAG/NUMERO "#" TENGA AL COMIENZO.
+
+### Actualmente la camara sigue al jugador seleccionado y hay un efecto raro en los bordes
+del terreno. Hay que ajustarla para que sea "estatica" como en league of legends cuando tienes 
+la camara centrada al campeon.
