@@ -31,32 +31,31 @@ async function bootstrap(): Promise<void> {
   rederer.shadowMap.enabled = true;
   htmlDiv.appendChild(rederer.domElement);
 
-  /**
-   * Game setup
-   *
-   * The id is hardcoded for now, in the future we will get the
-   * id somehow with the yet to be made authentication system. LOL
-   */
-  const id = 'c7fed61a-d869-4a51-bf18-51281121d13c';
   const playerEntities = await setupPlayers();
   const terrain = await setupTerrain();
   const directionalLight = setupLighting();
 
-  const player = playerEntities.find((x) => x.id === id)!; // This should not fail for now
-  console.log(player);
-
   /**
-   * Here we initialize all the required systems
-   * we do it in order because we have systems that
-   * depend on other systems (dependency injection).
+   * The id is hardcoded for now, in the future we will get the
+   * id somehow with the yet to be made authentication system. LOL
+   *
+   * Also the main player can be handled in the movement system passing the id
+   * once we handle the movement for all players in the terrain.
+   * (For now we only handle the main player).
    */
+  const id = 'c7fed61a-d869-4a51-bf18-51281121d13c';
+  const player = playerEntities.find((x) => x.id === id)!;
+
   const cameraSystem = new CameraSystem(camera, player);
   const movementSystem = new MovementSystem(player, camera, terrain);
 
   scene.add(cameraSystem.camera);
   scene.add(terrain.mesh);
   scene.add(directionalLight);
-  scene.add(player.mesh);
+
+  for (const p of playerEntities) {
+    scene.add(p.mesh);
+  }
 
   const clock = new Clock();
   const animationLoop = () => {
