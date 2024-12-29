@@ -1,4 +1,4 @@
-import { Box3, Mesh, MeshToonMaterial, PlaneGeometry } from 'three';
+import { Box3, Color, Mesh, MeshToonMaterial, RepeatWrapping, Shape, ShapeGeometry, TextureLoader } from 'three';
 import { TerrainMesh } from '../common/types';
 
 export class TerrainEntity {
@@ -6,14 +6,19 @@ export class TerrainEntity {
   public collision: Box3;
 
   constructor(config: any) {
-    const { width, height, color, rotation } = config;
+    const textureLoader = new TextureLoader();
+    const woodFloorTexture = textureLoader.load('/textures/hardwood.jpg');
+    woodFloorTexture.wrapS = RepeatWrapping;
+    woodFloorTexture.wrapT = RepeatWrapping;
+    woodFloorTexture.repeat.set(1, 1);
 
-    const geometry = new PlaneGeometry(width, height);
-    const material = new MeshToonMaterial({ color });
+    const shape = new Shape(config.points);
+    const geometry = new ShapeGeometry(shape);
+    const material = new MeshToonMaterial({ map: woodFloorTexture, side: 2, color: new Color(0xffffff) });
 
     this.mesh = new Mesh(geometry, material);
-    this.mesh.rotation.x = rotation;
     this.mesh.receiveShadow = true;
+    this.mesh.rotation.x = config.rotation;
 
     this.collision = new Box3().setFromObject(this.mesh);
   }
