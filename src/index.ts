@@ -49,7 +49,7 @@ async function bootstrap(): Promise<void> {
   const cameraSystem = new CameraSystem(camera, player);
   const movementSystem = new MovementSystem(player, camera, terrain);
 
-  scene.add(cameraSystem.camera);
+  scene.add(camera);
   scene.add(terrain.mesh);
   scene.add(directionalLight);
 
@@ -65,7 +65,7 @@ async function bootstrap(): Promise<void> {
     cameraSystem.update(delta);
     movementSystem.update(delta);
 
-    rederer.render(scene, cameraSystem.camera);
+    rederer.render(scene, camera);
   };
 
   animationLoop();

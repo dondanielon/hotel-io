@@ -9,8 +9,8 @@ import {
 } from '../common/constants';
 
 export class CameraSystem {
-  public camera: PerspectiveCamera;
-  public player: PlayerEntity;
+  private camera: PerspectiveCamera;
+  private player: PlayerEntity;
 
   constructor(camera: PerspectiveCamera, player: PlayerEntity) {
     this.camera = camera;
