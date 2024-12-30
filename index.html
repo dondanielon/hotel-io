@@ -7,6 +7,28 @@
     <title>Vite + TS</title>
   </head>
   <body>
+    <div id="ui">
+      <label>
+        X: 
+        <input type="range" id="xRange" min="-50" max="50" step="1" value="0">
+        <span id="xValue">0</span>
+      </label>
+      <label>
+        Y: 
+        <input type="range" id="yRange" min="-50" max="50" step="1" value="0">
+        <span id="yValue">0</span>
+      </label>
+      <label>
+        Z: 
+        <input type="range" id="zRange" min="-50" max="50" step="1" value="5">
+        <span id="zValue">5</span>
+      </label>
+      <label>
+        FOV: 
+        <input type="range" id="fovRange" min="1" max="120" step="1" value="5">
+        <span id="fovValue">5</span>
+      </label>
+    </div>
     <div id="app"></div>
     <script type="module" src="/src/index.ts"></script>
   </body>

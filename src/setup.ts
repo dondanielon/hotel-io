@@ -1,8 +1,7 @@
 import { GLTFLoader } from 'three/examples/jsm/Addons.js';
-import { DirectionalLight, Vector2 } from 'three';
+import { AmbientLight, DirectionalLight, Vector2 } from 'three';
 
 import { PlayerEntity } from './entities/PlayerEntity';
-import { GLTFile } from './common/types';
 import { TerrainEntity } from './entities/TerrainEntity';
 import {
   LIGHT_CAST_SHADOW,
@@ -30,36 +29,27 @@ const terrainMetadata = {
 const playersList = [
   {
     id: 'c7fed61a-d869-4a51-bf18-51281121d13c',
-    modelPath: '/models/female-warrior.glb',
+    modelPath: '/models/girl.glb',
   },
 ];
 
 // In the future we will fetch the players list from a database
 export async function setupPlayers(): Promise<PlayerEntity[]> {
   const loader = new GLTFLoader();
-  const loadModel = (id: string, path: string) => {
-    return new Promise<GLTFile>((resolve, reject) => {
-      loader.load(
-        path,
-        (data) => resolve({ ...data, id }),
-        undefined,
-        (err) => reject(err)
-      );
-    });
-  };
 
   /**
    * TODO: Check if there are duplicate model paths in
    * the player list, to prevent loading > 1 of the same model
    */
   const models = await Promise.all(
-    playersList.map((player) => {
-      return loadModel(player.id, player.modelPath);
+    playersList.map(async (player) => {
+      const model = await loader.loadAsync(player.modelPath);
+      return { ...model, id: player.id };
     })
   );
 
   return models.map(
-    (model) => new PlayerEntity(model, terrainMetadata.startPosition, SYSTEM_PLAYERS_DEBUG)
+    (model) => new PlayerEntity({ ...model }, terrainMetadata.startPosition, SYSTEM_PLAYERS_DEBUG)
   );
 }
 
@@ -75,8 +65,9 @@ export function setupTerrain(): Promise<TerrainEntity> {
   );
 }
 
-export function setupLighting(): DirectionalLight {
+export function setupLighting() {
   const directionalLight = new DirectionalLight(LIGHT_COLOR, LIGHT_INTENSITY);
+  const ambientLight = new AmbientLight(0x404040, 1);
   const shadowCamera = directionalLight.shadow.camera;
 
   directionalLight.position.set(LIGHT_POSITION_X, LIGHT_POSITION_Y, LIGHT_POSITION_Z);
@@ -90,5 +81,5 @@ export function setupLighting(): DirectionalLight {
   shadowCamera.near = LIGHT_SHADOW_CAMERA_NEAR;
   shadowCamera.far = LIGHT_SHADOW_CAMERA_FAR;
 
-  return directionalLight;
+  return { directionalLight, ambientLight };
 }

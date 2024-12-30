@@ -9,7 +9,28 @@ import {
   CAMERA_FAR_VIEW,
   CAMERA_FOV,
   CAMERA_NEAR_VIEW,
+  CAMERA_SYSTEM_X_POSITION_ADD,
+  CAMERA_SYSTEM_Y_POSITION_ADD,
+  CAMERA_SYSTEM_Z_POSITION_ADD,
 } from './common/constants';
+
+const xRange = document.querySelector<HTMLInputElement>('#xRange')!;
+const yRange = document.querySelector<HTMLInputElement>('#yRange')!;
+const zRange = document.querySelector<HTMLInputElement>('#zRange')!;
+const fovRange = document.querySelector<HTMLInputElement>('#fovRange')!;
+const xValue = document.querySelector<HTMLInputElement>('#xValue')!;
+const yValue = document.querySelector<HTMLInputElement>('#yValue')!;
+const zValue = document.querySelector<HTMLInputElement>('#zValue')!;
+const fovValue = document.querySelector<HTMLInputElement>('#fovValue')!;
+
+xRange.value = `${CAMERA_SYSTEM_X_POSITION_ADD}`;
+yRange.value = `${CAMERA_SYSTEM_Y_POSITION_ADD}`;
+zRange.value = `${CAMERA_SYSTEM_Z_POSITION_ADD}`;
+fovRange.value = `${CAMERA_FOV}`;
+xValue.textContent = xRange.value;
+yValue.textContent = yRange.value;
+zValue.textContent = zRange.value;
+fovValue.textContent = `${CAMERA_FOV}`;
 
 async function bootstrap(): Promise<void> {
   const htmlDiv = document.querySelector<HTMLDivElement>('#app');
@@ -33,7 +54,7 @@ async function bootstrap(): Promise<void> {
 
   const playerEntities = await setupPlayers();
   const terrain = await setupTerrain();
-  const directionalLight = setupLighting();
+  const { directionalLight, ambientLight } = setupLighting();
 
   /**
    * The id is hardcoded for now, in the future we will get the
@@ -47,15 +68,21 @@ async function bootstrap(): Promise<void> {
   const player = playerEntities.find((x) => x.id === id)!;
 
   const cameraSystem = new CameraSystem(camera, player);
-  const movementSystem = new MovementSystem(player, camera, terrain);
+  const movementSystem = new MovementSystem(player, scene, camera, terrain);
 
   scene.add(camera);
   scene.add(terrain.mesh);
   scene.add(directionalLight);
+  scene.add(ambientLight);
 
   for (const p of playerEntities) {
     scene.add(p.mesh);
   }
+
+  xRange.addEventListener('input', () => updateCameraPosition(cameraSystem, camera));
+  yRange.addEventListener('input', () => updateCameraPosition(cameraSystem, camera));
+  zRange.addEventListener('input', () => updateCameraPosition(cameraSystem, camera));
+  fovRange.addEventListener('input', () => updateCameraPosition(cameraSystem, camera));
 
   const clock = new Clock();
   const animationLoop = () => {
@@ -69,6 +96,19 @@ async function bootstrap(): Promise<void> {
   };
 
   animationLoop();
+}
+
+function updateCameraPosition(cameraSystem: CameraSystem, camera: PerspectiveCamera) {
+  camera.fov = parseInt(fovRange.value, 10);
+  camera.updateProjectionMatrix();
+  cameraSystem.cX = parseInt(xRange.value, 10);
+  cameraSystem.cY = parseInt(yRange.value, 10);
+  cameraSystem.cZ = parseInt(zRange.value, 10);
+
+  xValue.textContent = xRange.value;
+  yValue.textContent = yRange.value;
+  zValue.textContent = zRange.value;
+  fovValue.textContent = camera.fov.toString();
 }
 
 bootstrap();
