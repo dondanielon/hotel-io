@@ -1,14 +1,12 @@
 # Hotel IO
 
-A multiplayer hotel game built with Three.js, ECSY, and WebSockets.
+A vibrant multiplayer game that combines the strategic gameplay of League of Legends with the social interaction of Habbo Hotel, built using Three.js, ECSY, and WebSockets.
 
 ## Features
 
 - 3D environment with real-time rendering
 - Multiplayer support with WebSocket communication
 - Entity Component System (ECS) architecture
-- Performance monitoring with stats.js
-- Modern UI with Web Components
 
 ## Getting Started
 
@@ -22,7 +20,7 @@ A multiplayer hotel game built with Three.js, ECSY, and WebSockets.
 1. Clone the repository:
 
 ```bash
-git clone https://github.com/yourusername/hotel-io.git
+git clone https://github.com/dondanielon/hotel-io.git
 cd hotel-io
 ```
 
@@ -44,30 +42,6 @@ yarn dev
 
 4. Open your browser and navigate to `http://localhost:3000`
 
-## Project Structure
+## Missing Assets Disclaimer
 
-- `src/` - Source code
-  - `components/` - ECSY components
-  - `systems/` - ECSY systems
-  - `ui/` - Web Components
-  - `common/` - Shared utilities and constants
-  - `game.ts` - Main game class
-  - `main.ts` - Entry point
-
-## Development
-
-### Commands
-
-- `npm run dev` - Start development server
-- `npm run build` - Build for production
-- `npm run preview` - Preview production build
-
-### Adding New Features
-
-1. Create new components in `src/components/`
-2. Create new systems in `src/systems/`
-3. Register components and systems in `src/game.ts`
-
-## License
-
-MIT
+This repository does not include certain assets (e.g., images, sounds, or other media) that are not owned by me. These assets are either copyrighted, licensed, or belong to third parties, and therefore, I cannot distribute them within this project.
