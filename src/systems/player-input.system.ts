@@ -1,44 +1,88 @@
-// import { System } from 'ecsy';
-// import { SceneComponent } from '../components/SceneComponent';
-// import { CameraComponent } from '../components/CameraComponent';
-// import { Raycaster, Vector2 } from 'three';
-// import { Model3DComponent } from '../components/Model3DComponent';
+import * as THREE from 'three';
+import {
+  ECSYThreeSystem,
+  MeshTagComponent,
+  Object3DComponent,
+  WebGLRendererComponent,
+} from 'ecsy-three';
+import { GameStore } from '@root/stores/game.store';
+import { TerrainComponent } from '@root/components/terrain.component';
 
-// export class PlayerInputSystem extends System {
-//   private raycaster = new Raycaster();
-//   static queries = {
-//     scene: { components: [SceneComponent] },
-//     camera: { components: [CameraComponent] },
-//     terrain: { components: [Model3DComponent] },
-//   };
+const raycaster = new THREE.Raycaster();
 
-//   init(): void {
-//     window.addEventListener('contextmenu', this.onRightClick.bind(this));
-//   }
+export class PlayerInputSystem extends ECSYThreeSystem {
+  private clickPointerTimer: number = 0;
+  private clickPointer: THREE.Mesh<
+    THREE.CircleGeometry,
+    THREE.MeshBasicMaterial,
+    THREE.Object3DEventMap
+  > | null = null;
+  static queries = {
+    terrain: { components: [TerrainComponent, Object3DComponent, MeshTagComponent] },
+    renderer: { components: [WebGLRendererComponent] },
+  };
 
-//   execute(_delta: number, _time: number): void {}
+  init(): void {
+    window.addEventListener('contextmenu', this.onRightClick.bind(this));
+  }
 
-//   private onRightClick(e: MouseEvent): void {
-//     e.preventDefault();
+  execute(delta: number, _time: number): void {
+    const rendererComponent = this.queries.renderer.results[0].getComponent(WebGLRendererComponent);
+    const scene = rendererComponent?.scene.getObject3D<THREE.Scene>();
 
-//     const cameraComponent = this.queries.camera.results[0].getComponent(CameraComponent);
-//     const sceneComponent = this.queries.scene.results[0].getComponent(SceneComponent);
-//     const terrainComponent = this.queries.terrain.results.find(
-//       (entity) => entity. === 'terrain'
-//     );
+    if (this.clickPointer && scene) {
+      this.clickPointerTimer -= delta;
+      if (this.clickPointerTimer <= 0) {
+        scene.remove(this.clickPointer);
+        this.clickPointer = null;
+      } else {
+        this.clickPointer.material.opacity = Math.max(0, this.clickPointerTimer / 1);
+      }
+    }
+  }
 
-//     if (!cameraComponent || !sceneComponent) return;
+  private onRightClick(e: MouseEvent): void {
+    e.preventDefault();
 
-//     const camera = cameraComponent.camera;
-//     const scene = sceneComponent.scene;
+    const rendererComponent = this.queries.renderer.results[0].getComponent(WebGLRendererComponent);
+    const terrainEntity = this.queries.terrain.results[0];
 
-//     const mouse = new Vector2(
-//       (e.clientX / window.innerWidth) * 2 - 1,
-//       -(e.clientY / window.innerHeight) * 2 + 1
-//     );
-// //
-//     this.raycaster.setFromCamera(mouse, camera);
+    const scene = rendererComponent?.scene.getObject3D<THREE.Scene>();
+    const camera = rendererComponent?.camera.getObject3D<THREE.PerspectiveCamera>();
+    const terrain = terrainEntity.getObject3D<THREE.Mesh>();
 
-//     const intersects = this.raycaster.intersectObject();
-//   }
-// }
+    if (!camera || !terrain || !scene) return;
+
+    const mouse = new THREE.Vector2(
+      (e.clientX / window.innerWidth) * 2 - 1,
+      -(e.clientY / window.innerHeight) * 2 + 1
+    );
+
+    raycaster.setFromCamera(mouse, camera);
+    const intersects = raycaster.intersectObject(terrain);
+
+    if (intersects.length > 0) {
+      const point = intersects[0].point;
+      GameStore.update('targetPosition', { x: point.x, y: 0, z: point.z });
+
+      if (this.clickPointer) {
+        scene.remove(this.clickPointer);
+      }
+
+      const geometry = new THREE.CircleGeometry(0.1, 15);
+      const material = new THREE.MeshBasicMaterial({
+        color: 0x00ff00,
+        opacity: 1,
+        transparent: true,
+        side: 2,
+      });
+
+      this.clickPointer = new THREE.Mesh(geometry, material);
+      this.clickPointer.position.set(point.x, 0 + 0.01, point.z);
+      this.clickPointer.rotation.x = -Math.PI / 2;
+      scene.add(this.clickPointer);
+
+      this.clickPointerTimer = 1;
+    }
+  }
+}
