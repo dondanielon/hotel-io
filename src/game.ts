@@ -58,14 +58,20 @@ export class Game {
       renderer,
     });
 
-    const directionalLight = new THREE.DirectionalLight(0xffffff, 1);
+    const directionalLight_1 = new THREE.DirectionalLight(0xffffff, 1);
+    const directionalLight_2 = new THREE.DirectionalLight(0xffffff, 1);
+
     const ambientLight = new THREE.AmbientLight(0x404040, 1);
 
-    directionalLight.position.set(0, 10, 10);
-    directionalLight.castShadow = true;
+    directionalLight_1.position.set(0, 10, 10);
+    directionalLight_2.position.set(0, 10, -10);
+    directionalLight_1.castShadow = true;
+    directionalLight_2.castShadow = true;
 
     scene.add(camera);
-    scene.add(directionalLight);
+    scene.add(directionalLight_1);
+    scene.add(directionalLight_2);
+
     scene.add(ambientLight);
   }
 
