@@ -7,6 +7,8 @@ import {
 } from 'ecsy-three';
 import { GameStore } from '@root/stores/game.store';
 import { TerrainComponent } from '@root/components/terrain.component';
+import { PlayerComponent } from '@root/components/player.component';
+import { MovementComponent } from '@root/components/movement.component';
 
 const raycaster = new THREE.Raycaster();
 
@@ -20,6 +22,7 @@ export class PlayerInputSystem extends ECSYThreeSystem {
   static queries = {
     terrain: { components: [TerrainComponent, Object3DComponent, MeshTagComponent] },
     renderer: { components: [WebGLRendererComponent] },
+    players: { components: [PlayerComponent, MovementComponent] },
   };
 
   init(): void {
@@ -44,6 +47,15 @@ export class PlayerInputSystem extends ECSYThreeSystem {
   private onRightClick(e: MouseEvent): void {
     e.preventDefault();
 
+    const user = GameStore.getState().user;
+
+    if (!user) return;
+
+    const playerEntityId = GameStore.getState().mappedPlayers[user.id];
+    const playerEntity = this.queries.players.results.find((x) => x.id === playerEntityId);
+
+    if (!playerEntity) return;
+
     const rendererComponent = this.queries.renderer.results[0].getComponent(WebGLRendererComponent);
     const terrainEntity = this.queries.terrain.results[0];
 
@@ -63,7 +75,13 @@ export class PlayerInputSystem extends ECSYThreeSystem {
 
     if (intersects.length > 0) {
       const point = intersects[0].point;
-      GameStore.update('targetPosition', { x: point.x, y: 0, z: point.z });
+      point.y = 0;
+
+      GameStore.update('targetPosition', { x: point.x, y: point.y, z: point.z });
+
+      const movementComponent = playerEntity.getMutableComponent(MovementComponent)!;
+      movementComponent.targetPosition = point;
+      movementComponent.isMoving = true;
 
       if (this.clickPointer) {
         scene.remove(this.clickPointer);

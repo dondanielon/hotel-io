@@ -6,13 +6,14 @@ import { PlayerInputSystem } from './systems/player-input.system';
 import { PlayerComponent } from './components/player.component';
 import { PlayerAnimationComponent } from './components/player-animation.component';
 import { MovementComponent } from './components/movement.component';
-import { TransformComponent } from './components/transform.component';
+
 import {
   ECSYThreeEntity,
   ECSYThreeWorld,
   WebGLRendererComponent,
   WebGLRendererSystem,
 } from 'ecsy-three';
+import { MovementSystem } from './systems/movement.system';
 
 export class Game {
   private world: ECSYThreeWorld;
@@ -26,8 +27,8 @@ export class Game {
       .registerComponent(PlayerComponent)
       .registerComponent(PlayerAnimationComponent)
       .registerComponent(MovementComponent)
-      .registerComponent(TransformComponent)
       .registerSystem(NetworkSystem, { priority: 0 })
+      .registerSystem(MovementSystem)
       .registerSystem(PlayerInputSystem)
       .registerSystem(WebGLRendererSystem, { priority: 999 });
 
@@ -41,7 +42,7 @@ export class Game {
       CAMERA_FAR_VIEW
     );
 
-    camera.position.set(0, 5, 10);
+    camera.position.set(0, 10, 10);
     camera.lookAt(0, 0, 0);
 
     document.body.appendChild(renderer.domElement);

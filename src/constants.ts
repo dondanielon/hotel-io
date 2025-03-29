@@ -1,6 +1,6 @@
 export const CAMERA_ASPECT_RATIO = window.innerWidth / window.innerHeight;
 export const CAMERA_FAR_VIEW = 1000;
-export const CAMERA_FOV = 50;
+export const CAMERA_FOV = 30;
 export const CAMERA_NEAR_VIEW = 0.1;
 export const CAMERA_SYSTEM_X_POSITION_ADD = 0;
 export const CAMERA_SYSTEM_Y_POSITION_ADD = 5;

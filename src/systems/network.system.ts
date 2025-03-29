@@ -3,7 +3,6 @@ import { WebSocketEvent } from '@root/enums/network.enums';
 import { GameState, GameStore } from '@root/stores/game.store';
 import { LobbyState } from '@root/types/game.types';
 import { PlayerComponent } from '@root/components/player.component';
-import { TransformComponent } from '@root/components/transform.component';
 import { GLTFLoader } from 'three/examples/jsm/Addons.js';
 import { PlayerAnimationComponent } from '@root/components/player-animation.component';
 import { MovementComponent } from '@root/components/movement.component';
@@ -23,7 +22,6 @@ const gltfLoader = new GLTFLoader();
 export class NetworkSystem extends ECSYThreeSystem {
   private socket!: WebSocket;
   private messageQueue!: Message[];
-  private mappedPlayers: Record<string, number> = {};
   static queries = {
     terrain: { components: [TerrainComponent, Object3DComponent, MeshTagComponent] },
     renderer: { components: [WebGLRendererComponent] },
@@ -139,18 +137,12 @@ export class NetworkSystem extends ECSYThreeSystem {
             model.scene.castShadow = true;
 
             const mixer = new THREE.AnimationMixer(model.scene);
+
             const playerEntity = this.world
               .createEntity()
               .addObject3DComponent(model.scene)
-              .addComponent(MovementComponent)
+              .addComponent(MovementComponent, { isMoving: false, speed: 1, targetPosition: null })
               .addComponent(PlayerComponent, { username: player.username, id })
-              .addComponent(TransformComponent, {
-                position: new THREE.Vector3(
-                  player.position.x,
-                  player.position.y,
-                  player.position.z
-                ),
-              })
               .addComponent(PlayerAnimationComponent, {
                 mixer,
                 idle: mixer.clipAction(model.animations.find((x) => x.name === 'idle')!),
@@ -160,8 +152,11 @@ export class NetworkSystem extends ECSYThreeSystem {
                 current: mixer.clipAction(model.animations.find((x) => x.name === 'idle')!),
               });
 
-            this.mappedPlayers[id] = playerEntity.id;
+            mixer.clipAction(model.animations.find((x) => x.name === 'idle')!).play();
             scene.add(model.scene);
+
+            const mappedPlayers = GameStore.getState().mappedPlayers;
+            GameStore.update('mappedPlayers', { ...mappedPlayers, [id]: playerEntity.id });
           });
         }
         break;
