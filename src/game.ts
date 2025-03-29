@@ -14,6 +14,7 @@ import {
   WebGLRendererSystem,
 } from 'ecsy-three';
 import { MovementSystem } from './systems/movement.system';
+import { CameraSystem } from './systems/camera.system';
 
 export class Game {
   private world: ECSYThreeWorld;
@@ -28,6 +29,7 @@ export class Game {
       .registerComponent(PlayerAnimationComponent)
       .registerComponent(MovementComponent)
       .registerSystem(NetworkSystem, { priority: 0 })
+      .registerSystem(CameraSystem)
       .registerSystem(MovementSystem)
       .registerSystem(PlayerInputSystem)
       .registerSystem(WebGLRendererSystem, { priority: 999 });
