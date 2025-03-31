@@ -24,11 +24,11 @@ export class MovementSystem extends ECSYThreeSystem {
           const direction = new Vector3()
             .subVectors(movementComponent.targetPosition, playerMesh.position)
             .normalize();
+
           const distance = movementComponent.speed * delta;
-          const step = direction.multiplyScalar(distance); // Calculates displacement based on speed and elapsed time
+          const step = direction.multiplyScalar(distance);
 
           if (playerMesh.position.distanceTo(movementComponent.targetPosition) > distance) {
-            console.log('walking');
             if (!animationComponent.walk.isRunning()) {
               animationComponent.idle.fadeOut(0.2);
               animationComponent.walk.reset().fadeIn(0.2).play();
@@ -36,7 +36,6 @@ export class MovementSystem extends ECSYThreeSystem {
 
             playerMesh.position.add(step);
           } else {
-            console.log('idle');
             if (animationComponent.walk.isRunning()) {
               animationComponent.walk.fadeOut(0.2);
               animationComponent.idle.reset().fadeIn(0.2).play();
@@ -49,14 +48,13 @@ export class MovementSystem extends ECSYThreeSystem {
 
           const targetRotation = Math.atan2(direction.x, direction.z);
           const currentRotationY = playerMesh.rotation.y;
-          let diference = targetRotation - currentRotationY;
 
+          let diference = targetRotation - currentRotationY;
           if (diference > Math.PI) diference -= Math.PI * 2;
           if (diference < -Math.PI) diference += Math.PI * 2;
 
           const smoothAngle = currentRotationY + diference * 10 * delta;
 
-          // this.player.mesh.rotation.y = MathUtils.euclideanModulo(smoothAngle, Math.PI * 2);
           playerMesh.rotation.y =
             THREE.MathUtils.euclideanModulo(smoothAngle + Math.PI, Math.PI * 2) - Math.PI;
         }

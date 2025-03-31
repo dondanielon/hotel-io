@@ -137,7 +137,10 @@ export class NetworkSystem extends ECSYThreeSystem {
             model.scene.castShadow = true;
 
             const mixer = new THREE.AnimationMixer(model.scene);
+            mixer.clipAction(model.animations.find((x) => x.name === 'idle')!).play();
+            // mixer.clipAction(model.animations.find((x) => x.name === 'breathing-idle')!).play();
 
+            // Girl model
             const playerEntity = this.world
               .createEntity()
               .addObject3DComponent(model.scene)
@@ -149,10 +152,21 @@ export class NetworkSystem extends ECSYThreeSystem {
                 run: mixer.clipAction(model.animations.find((x) => x.name === 'fast-run')!),
                 tpose: mixer.clipAction(model.animations.find((x) => x.name === 'tpose')!),
                 walk: mixer.clipAction(model.animations.find((x) => x.name === 'walk')!),
-                current: mixer.clipAction(model.animations.find((x) => x.name === 'idle')!),
               });
 
-            mixer.clipAction(model.animations.find((x) => x.name === 'idle')!).play();
+            // Female warrior model
+            // const playerEntity = this.world
+            //   .createEntity()
+            //   .addObject3DComponent(model.scene)
+            //   .addComponent(MovementComponent, { isMoving: false, speed: 2, targetPosition: null })
+            //   .addComponent(PlayerComponent, { username: player.username, id })
+            //   .addComponent(PlayerAnimationComponent, {
+            //     mixer,
+            //     idle: mixer.clipAction(model.animations.find((x) => x.name === 'breathing-idle')!),
+            //     tpose: mixer.clipAction(model.animations.find((x) => x.name === 't-pose')!),
+            //     walk: mixer.clipAction(model.animations.find((x) => x.name === 'standard-run')!),
+            //   });
+
             scene.add(model.scene);
 
             const mappedPlayers = GameStore.getState().mappedPlayers;

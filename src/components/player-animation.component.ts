@@ -7,13 +7,11 @@ export class PlayerAnimationComponent extends Component<PlayerAnimationComponent
   run!: AnimationAction;
   tpose!: AnimationAction;
   walk!: AnimationAction;
-  current!: AnimationAction;
   static schema = {
     mixer: { type: Types.Ref as RefPropType<AnimationMixer> },
     idle: { type: Types.Ref as RefPropType<AnimationAction> },
     run: { type: Types.Ref as RefPropType<AnimationAction> },
     tpose: { type: Types.Ref as RefPropType<AnimationAction> },
     walk: { type: Types.Ref as RefPropType<AnimationAction> },
-    current: { type: Types.Ref as RefPropType<AnimationAction> },
   };
 }
