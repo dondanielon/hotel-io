@@ -2,7 +2,7 @@ import * as THREE from 'three';
 import { MovementComponent } from '@root/components/movement.component';
 import { PlayerAnimationComponent } from '@root/components/player-animation.component';
 import { PlayerComponent } from '@root/components/player.component';
-import { ECSYThreeSystem } from 'ecsy-three';
+import { ECSYThreeEntity, ECSYThreeSystem } from 'ecsy-three';
 import { Vector3 } from 'three';
 
 export class MovementSystem extends ECSYThreeSystem {
@@ -14,13 +14,13 @@ export class MovementSystem extends ECSYThreeSystem {
 
   execute(delta: number, _time: number): void {
     this.queries.players.results.forEach((entity) => {
-      const playerComponent = entity.getComponent(PlayerComponent);
+      const playerMesh = this.getPlayerMesh(entity);
+
       const movementComponent = entity.getMutableComponent(MovementComponent);
       const animationComponent = entity.getComponent(PlayerAnimationComponent);
 
-      if (playerComponent && movementComponent && animationComponent) {
+      if (movementComponent && animationComponent) {
         if (movementComponent.isMoving && movementComponent.targetPosition) {
-          const playerMesh = entity.getObject3D<THREE.Mesh>()!;
           const direction = new Vector3()
             .subVectors(movementComponent.targetPosition, playerMesh.position)
             .normalize();
@@ -62,5 +62,12 @@ export class MovementSystem extends ECSYThreeSystem {
         animationComponent.mixer.update(delta);
       }
     });
+  }
+
+  private getPlayerMesh(entity: ECSYThreeEntity): THREE.Mesh {
+    const playerComponent = entity.getComponent(PlayerComponent);
+    const playerMesh = entity.getObject3D<THREE.Mesh>()!;
+
+    return playerMesh;
   }
 }
