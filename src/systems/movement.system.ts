@@ -5,7 +5,13 @@ import { PlayerComponent } from '@root/components/player.component';
 import { ECSYThreeEntity, ECSYThreeSystem } from 'ecsy-three';
 import { Vector3 } from 'three';
 
+/**
+ * System responsible for handling player movement and animations
+ */
 export class MovementSystem extends ECSYThreeSystem {
+  private static readonly ROTATION_SPEED = 10;
+  private static readonly ANIMATION_FADE_DURATION = 0.2;
+
   static queries = {
     players: {
       components: [PlayerComponent, MovementComponent, PlayerAnimationComponent],
@@ -14,60 +20,114 @@ export class MovementSystem extends ECSYThreeSystem {
 
   execute(delta: number, _time: number): void {
     this.queries.players.results.forEach((entity) => {
-      const playerMesh = this.getPlayerMesh(entity);
-
-      const movementComponent = entity.getMutableComponent(MovementComponent);
-      const animationComponent = entity.getComponent(PlayerAnimationComponent);
-
-      if (movementComponent && animationComponent) {
-        if (movementComponent.isMoving && movementComponent.targetPosition) {
-          const direction = new Vector3()
-            .subVectors(movementComponent.targetPosition, playerMesh.position)
-            .normalize();
-
-          const distance = movementComponent.speed * delta;
-          const step = direction.multiplyScalar(distance);
-
-          if (playerMesh.position.distanceTo(movementComponent.targetPosition) > distance) {
-            if (!animationComponent.walk.isRunning()) {
-              animationComponent.idle.fadeOut(0.2);
-              animationComponent.walk.reset().fadeIn(0.2).play();
-            }
-
-            playerMesh.position.add(step);
-          } else {
-            if (animationComponent.walk.isRunning()) {
-              animationComponent.walk.fadeOut(0.2);
-              animationComponent.idle.reset().fadeIn(0.2).play();
-            }
-
-            playerMesh.position.copy(movementComponent.targetPosition);
-            movementComponent.isMoving = false;
-            movementComponent.targetPosition = null;
-          }
-
-          const targetRotation = Math.atan2(direction.x, direction.z);
-          const currentRotationY = playerMesh.rotation.y;
-
-          let diference = targetRotation - currentRotationY;
-          if (diference > Math.PI) diference -= Math.PI * 2;
-          if (diference < -Math.PI) diference += Math.PI * 2;
-
-          const smoothAngle = currentRotationY + diference * 10 * delta;
-
-          playerMesh.rotation.y =
-            THREE.MathUtils.euclideanModulo(smoothAngle + Math.PI, Math.PI * 2) - Math.PI;
-        }
-
-        animationComponent.mixer.update(delta);
-      }
+      this.updatePlayerMovement(entity, delta);
     });
   }
 
-  private getPlayerMesh(entity: ECSYThreeEntity): THREE.Mesh {
-    const playerComponent = entity.getComponent(PlayerComponent);
-    const playerMesh = entity.getObject3D<THREE.Mesh>()!;
+  /**
+   * Updates the movement and animation state for a single player entity
+   */
+  private updatePlayerMovement(entity: ECSYThreeEntity, delta: number): void {
+    const playerMesh = entity.getObject3D<THREE.Mesh>();
+    const movementComponent = entity.getMutableComponent(MovementComponent);
+    const animationComponent = entity.getComponent(PlayerAnimationComponent);
 
-    return playerMesh;
+    if (!this.validateComponents(playerMesh, movementComponent, animationComponent)) {
+      return;
+    }
+
+    if (!movementComponent!.isMoving || !movementComponent!.targetPosition) {
+      return;
+    }
+
+    this.updatePlayerPosition(playerMesh!, movementComponent!, animationComponent!, delta);
+  }
+
+  /**
+   * Validates that all required components are present
+   */
+  private validateComponents(
+    playerMesh?: THREE.Mesh,
+    movementComponent?: MovementComponent,
+    animationComponent?: PlayerAnimationComponent
+  ): boolean {
+    if (!playerMesh || !movementComponent || !animationComponent) {
+      console.error('Required component or mesh not found');
+      return false;
+    }
+    return true;
+  }
+
+  /**
+   * Updates the player's position and handles movement-related animations
+   */
+  private updatePlayerPosition(
+    playerMesh: THREE.Mesh,
+    movementComponent: MovementComponent,
+    animationComponent: PlayerAnimationComponent,
+    delta: number
+  ): void {
+    const direction = this.calculateMovementDirection(
+      playerMesh.position,
+      movementComponent.targetPosition!
+    );
+    const distance = movementComponent.speed * delta;
+    const step = direction.multiplyScalar(distance);
+
+    if (playerMesh.position.distanceTo(movementComponent.targetPosition!) > distance) {
+      this.handleMovingState(animationComponent);
+      playerMesh.position.add(step);
+    } else {
+      this.handleStoppedState(animationComponent);
+      playerMesh.position.copy(movementComponent.targetPosition!);
+      movementComponent.isMoving = false;
+      movementComponent.targetPosition = null;
+    }
+
+    playerMesh.rotation.y = this.calculateRotationY(playerMesh.rotation.y, direction, delta);
+    animationComponent.mixer.update(delta);
+  }
+
+  /**
+   * Calculates the normalized direction vector from current to target position
+   */
+  private calculateMovementDirection(currentPosition: Vector3, targetPosition: Vector3): Vector3 {
+    return new Vector3().subVectors(targetPosition, currentPosition).normalize();
+  }
+
+  /**
+   * Handles animation state when player is moving
+   */
+  private handleMovingState(animationComponent: PlayerAnimationComponent): void {
+    if (!animationComponent.walk.isRunning()) {
+      animationComponent.idle.fadeOut(MovementSystem.ANIMATION_FADE_DURATION);
+      animationComponent.walk.reset().fadeIn(MovementSystem.ANIMATION_FADE_DURATION).play();
+    }
+  }
+
+  /**
+   * Handles animation state when player has stopped
+   */
+  private handleStoppedState(animationComponent: PlayerAnimationComponent): void {
+    if (animationComponent.walk.isRunning()) {
+      animationComponent.walk.fadeOut(MovementSystem.ANIMATION_FADE_DURATION);
+      animationComponent.idle.reset().fadeIn(MovementSystem.ANIMATION_FADE_DURATION).play();
+    }
+  }
+
+  /**
+   * Calculates smooth rotation for the player to face movement direction
+   */
+  private calculateRotationY(currentRotationY: number, direction: Vector3, delta: number): number {
+    const targetRotation = Math.atan2(direction.x, direction.z);
+    let rotationDifference = targetRotation - currentRotationY;
+
+    // Normalize rotation difference to [-PI, PI]
+    if (rotationDifference > Math.PI) rotationDifference -= Math.PI * 2;
+    if (rotationDifference < -Math.PI) rotationDifference += Math.PI * 2;
+
+    const smoothAngle =
+      currentRotationY + rotationDifference * MovementSystem.ROTATION_SPEED * delta + Math.PI;
+    return THREE.MathUtils.euclideanModulo(smoothAngle, Math.PI * 2) - Math.PI;
   }
 }
