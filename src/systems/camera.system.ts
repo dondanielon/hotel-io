@@ -1,5 +1,5 @@
 import * as THREE from 'three';
-import { ECSYThreeSystem, WebGLRendererComponent } from 'ecsy-three';
+import { ECSYThreeEntity, ECSYThreeSystem, WebGLRendererComponent } from 'ecsy-three';
 import {
   CAMERA_SYSTEM_X_POSITION_ADD,
   CAMERA_SYSTEM_Y_POSITION_ADD,
@@ -10,6 +10,10 @@ import { PlayerComponent } from '@root/components/player.component';
 import { MovementComponent } from '@root/components/movement.component';
 import { PlayerAnimationComponent } from '@root/components/player-animation.component';
 
+/**
+ * System responsible for managing the camera position and orientation
+ * relative to the player's position
+ */
 export class CameraSystem extends ECSYThreeSystem {
   static queries = {
     renderer: { components: [WebGLRendererComponent] },
@@ -19,20 +23,87 @@ export class CameraSystem extends ECSYThreeSystem {
   };
 
   execute(_delta: number, _time: number): void {
-    const playerEntityId = GameStore.getState().mappedPlayers[GameStore.getState().user?.id ?? ''];
-    const playerEntity = this.queries.players?.results.find((x) => x.id === playerEntityId);
-    const rendereComponent = this.queries.renderer.results[0].getComponent(WebGLRendererComponent);
-    const camera = rendereComponent?.camera.getObject3D();
+    const playerEntity = this.getCurrentPlayerEntity();
+    const camera = this.getCamera();
 
-    if (!playerEntity) return;
+    if (!playerEntity || !camera) {
+      return;
+    }
 
-    const playerMesh = playerEntity.getObject3D<THREE.Mesh>()!;
+    this.updateCameraPosition(camera, playerEntity);
+  }
 
-    camera?.position.set(
-      playerMesh.position.x + CAMERA_SYSTEM_X_POSITION_ADD,
-      playerMesh.position.y + CAMERA_SYSTEM_Y_POSITION_ADD,
-      playerMesh.position.z + CAMERA_SYSTEM_Z_POSITION_ADD
+  /**
+   * Retrieves the current player entity based on the user's ID
+   */
+  private getCurrentPlayerEntity(): ECSYThreeEntity | null {
+    const userId = GameStore.getState().user?.id;
+    if (!userId) {
+      console.warn('No user ID found in game store');
+      return null;
+    }
+
+    const playerEntityId = GameStore.getState().mappedPlayers[userId];
+    if (!playerEntityId) {
+      console.warn('No player entity ID found for user:', userId);
+      return null;
+    }
+
+    const playerEntity = this.queries.players.results.find(
+      (entity) => entity.id === playerEntityId
     );
-    camera?.lookAt(playerMesh.position);
+    if (!playerEntity) {
+      console.warn('Player entity not found with ID:', playerEntityId);
+      return null;
+    }
+
+    return playerEntity;
+  }
+
+  /**
+   * Retrieves the camera from the renderer component
+   */
+  private getCamera(): THREE.PerspectiveCamera | null {
+    const rendererEntity = this.queries.renderer.results[0];
+    if (!rendererEntity) {
+      console.warn('No renderer entity found');
+      return null;
+    }
+
+    const rendererComponent = rendererEntity.getComponent(WebGLRendererComponent);
+    if (!rendererComponent) {
+      console.warn('No renderer component found');
+      return null;
+    }
+
+    const camera = rendererComponent.camera.getObject3D<THREE.PerspectiveCamera>();
+    if (!camera) {
+      console.warn('No camera found in renderer component');
+      return null;
+    }
+
+    return camera;
+  }
+
+  /**
+   * Updates the camera position and orientation based on player position
+   */
+  private updateCameraPosition(camera: THREE.Camera, playerEntity: ECSYThreeEntity): void {
+    const playerMesh = playerEntity.getObject3D<THREE.Mesh>();
+    if (!playerMesh) {
+      console.warn('No player mesh found');
+      return;
+    }
+
+    try {
+      camera.position.set(
+        playerMesh.position.x + CAMERA_SYSTEM_X_POSITION_ADD,
+        playerMesh.position.y + CAMERA_SYSTEM_Y_POSITION_ADD,
+        playerMesh.position.z + CAMERA_SYSTEM_Z_POSITION_ADD
+      );
+      camera.lookAt(playerMesh.position);
+    } catch (error) {
+      console.error('Error updating camera position:', error);
+    }
   }
 }
