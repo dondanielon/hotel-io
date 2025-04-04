@@ -1,40 +1,54 @@
 import * as THREE from 'three';
 import { WebSocketEvent } from '@root/enums/network.enums';
 import { GameState, GameStore } from '@root/stores/game.store';
-import { LobbyState } from '@root/types/game.types';
 import { PlayerComponent } from '@root/components/player.component';
 import { GLTFLoader } from 'three/examples/jsm/Addons.js';
 import { PlayerAnimationComponent } from '@root/components/player-animation.component';
 import { MovementComponent } from '@root/components/movement.component';
 import { TerrainComponent } from '@root/components/terrain.component';
 import {
+  ECSYThreeEntity,
   ECSYThreeSystem,
+  ECSYThreeWorld,
   MeshTagComponent,
   Object3DComponent,
   WebGLRendererComponent,
 } from 'ecsy-three';
+import { LobbyState, Player } from '@root/types/game.types';
+import { GameUtils } from '@root/utils/game.utils';
 
 type Message = { event: WebSocketEvent; payload: any };
 
-// TODO: Move to a separate file and use a singleton
-const gltfLoader = new GLTFLoader();
-
+/**
+ * System responsible for handling network communication and game state synchronization.
+ */
 export class NetworkSystem extends ECSYThreeSystem {
-  private socket!: WebSocket;
-  private messageQueue!: Message[];
+  private static readonly WS_URL = 'ws://localhost:80';
+  // Hardcoded for now
+  private static readonly TERRAIN_POSITION = new THREE.Vector3(-5, 0, 5);
+
+  private socket: WebSocket;
+  private messageQueue: Message[];
+  private gltfLoader: GLTFLoader;
+
   static queries = {
     terrain: { components: [TerrainComponent, Object3DComponent, MeshTagComponent] },
     renderer: { components: [WebGLRendererComponent] },
   };
 
-  init() {
+  constructor(world: ECSYThreeWorld) {
+    super(world);
     this.messageQueue = [];
-    this.socket = new WebSocket('ws://localhost:80');
+    this.socket = new WebSocket(NetworkSystem.WS_URL);
     this.socket.binaryType = 'arraybuffer';
+    this.gltfLoader = new GLTFLoader();
+    this.setupWebSocket();
+  }
 
+  private setupWebSocket(): void {
     this.socket.onclose = () => console.log('Disconnected from server');
     this.socket.onerror = (error) => console.error('WebSocket error:', error);
-    this.socket.onopen = () => GameStore.subscribe(this.listener.bind(this));
+    this.socket.onopen = () => GameStore.subscribe(this.handleGameStateChange.bind(this));
 
     this.socket.onmessage = (rawMessage) => {
       const message = this.parseRawMessage(rawMessage);
@@ -42,11 +56,22 @@ export class NetworkSystem extends ECSYThreeSystem {
     };
   }
 
+  init(): void {}
+
   execute(_delta: number, _time: number): void {
-    while (this.messageQueue.length > 0) {
-      const message = this.messageQueue.shift()!;
+    let message: Message | null;
+    while ((message = this.messageQueue.shift() ?? null)) {
       this.processMessage(message);
     }
+  }
+
+  private parseRawMessage(rawMessage: MessageEvent): Message {
+    const arrayBuffer = rawMessage.data as ArrayBuffer;
+    const uint8Array = new Uint8Array(arrayBuffer);
+    const event = uint8Array[0];
+    const payload = JSON.parse(new TextDecoder().decode(uint8Array.slice(1)));
+
+    return { event, payload };
   }
 
   private sendMessage(event: WebSocketEvent, payload: string): void {
@@ -63,121 +88,88 @@ export class NetworkSystem extends ECSYThreeSystem {
     this.socket.send(message);
   }
 
-  private parseRawMessage(rawMessage: MessageEvent): Message {
-    const arrayBuffer = rawMessage.data as ArrayBuffer;
-    const uint8Array = new Uint8Array(arrayBuffer);
-    const event = uint8Array[0];
-    const payload = JSON.parse(new TextDecoder().decode(uint8Array.slice(1)));
-    // TODO: Assign type and validate if event corresponds to payload type
-
-    return { event, payload };
-  }
-
-  private listener(state: GameState) {
+  private handleGameStateChange(state: GameState): void {
     if (state.requestGameList) {
       this.sendMessage(WebSocketEvent.GamesList, '');
       GameStore.update('requestGameList', false);
     }
 
     if (state.targetPosition) {
-      const test = JSON.stringify(state.targetPosition);
-      this.sendMessage(WebSocketEvent.PlayerMove, test);
+      this.sendMessage(WebSocketEvent.PlayerMove, JSON.stringify(state.targetPosition));
       GameStore.update('targetPosition', null);
     }
   }
 
-  private processMessage({ event, payload }: Message) {
+  private processMessage({ event, payload }: Message): void {
     switch (event) {
-      case WebSocketEvent.Authentication:
+      case WebSocketEvent.Authentication: {
         GameStore.update('user', payload);
         this.sendMessage(WebSocketEvent.JoinGame, 'public-game');
         break;
-      case WebSocketEvent.GamesList: {
-        break;
       }
+
       case WebSocketEvent.JoinGame: {
-        const lobbyState = payload as LobbyState;
-        const sceneEntity =
-          this.queries.renderer.results[0].getComponent(WebGLRendererComponent)?.scene;
+        const sceneEntity = this.getSceneEntity();
         if (!sceneEntity) return;
 
         const scene = sceneEntity.getObject3D<THREE.Scene>();
         if (!scene) return;
 
-        /**
-         * steps: Number of subdivisions
-         * depth: Depth of the extrusion (platform height)
-         * bevelEnabled: Adds a bevel around the edges
-         */
-        const terrainGeometrySettings = { steps: 2, depth: -0.1, bevelEnabled: false };
-        const terrainShape = new THREE.Shape(
-          lobbyState.terrain.points.map((p) => new THREE.Vector2(p.x, p.y))
+        const lobbyState = payload as LobbyState;
+        const terrainPoints = lobbyState.terrain.points.map(
+          (point) => new THREE.Vector2(point.x, point.y)
         );
-        const terrainGeometry = new THREE.ExtrudeGeometry(terrainShape, terrainGeometrySettings);
-        const terrainMaterial = new THREE.MeshToonMaterial({
-          side: 1,
-          color: new THREE.Color(0xffffff),
-        });
-        const terrainMesh = new THREE.Mesh(terrainGeometry, terrainMaterial);
-        terrainMesh.receiveShadow = true;
-        terrainMesh.rotation.x = -Math.PI / 2;
-        terrainMesh.position.set(-5, 0, 5);
 
+        const terrain = GameUtils.createTerrain(terrainPoints, NetworkSystem.TERRAIN_POSITION);
         this.world
           .createEntity()
-          .addObject3DComponent(terrainMesh, sceneEntity)
+          .addObject3DComponent(terrain, sceneEntity)
           .addComponent(TerrainComponent);
 
-        scene.add(terrainMesh);
-
         for (const [id, player] of Object.entries(lobbyState.players)) {
-          gltfLoader.load('/models/girl.glb', (model) => {
+          this.gltfLoader.load('/models/girl.glb', (model) => {
             model.scene.scale.set(1, 1, 1);
             model.scene.position.set(0, 0, 0);
             model.scene.castShadow = true;
-
-            const mixer = new THREE.AnimationMixer(model.scene);
-            mixer.clipAction(model.animations.find((x) => x.name === 'idle')!).play();
-            // mixer.clipAction(model.animations.find((x) => x.name === 'breathing-idle')!).play();
-
-            // Girl model
-            const playerEntity = this.world
-              .createEntity()
-              .addObject3DComponent(model.scene)
-              .addComponent(MovementComponent, { isMoving: false, speed: 1, targetPosition: null })
-              .addComponent(PlayerComponent, { username: player.username, id })
-              .addComponent(PlayerAnimationComponent, {
-                mixer,
-                idle: mixer.clipAction(model.animations.find((x) => x.name === 'idle')!),
-                run: mixer.clipAction(model.animations.find((x) => x.name === 'fast-run')!),
-                tpose: mixer.clipAction(model.animations.find((x) => x.name === 'tpose')!),
-                walk: mixer.clipAction(model.animations.find((x) => x.name === 'walk')!),
-              });
-
-            // Female warrior model
-            // const playerEntity = this.world
-            //   .createEntity()
-            //   .addObject3DComponent(model.scene)
-            //   .addComponent(MovementComponent, { isMoving: false, speed: 2, targetPosition: null })
-            //   .addComponent(PlayerComponent, { username: player.username, id })
-            //   .addComponent(PlayerAnimationComponent, {
-            //     mixer,
-            //     idle: mixer.clipAction(model.animations.find((x) => x.name === 'breathing-idle')!),
-            //     tpose: mixer.clipAction(model.animations.find((x) => x.name === 't-pose')!),
-            //     walk: mixer.clipAction(model.animations.find((x) => x.name === 'standard-run')!),
-            //   });
-
-            scene.add(model.scene);
-
-            const mappedPlayers = GameStore.getState().mappedPlayers;
-            GameStore.update('mappedPlayers', { ...mappedPlayers, [id]: playerEntity.id });
+            this.createPlayerEntity(scene, model, id, player);
           });
         }
         break;
       }
-      case WebSocketEvent.GameStateUpdate: {
-        break;
-      }
+
+      default:
+        console.warn('Unknown/Unhandled message event:', event);
     }
+  }
+
+  private getSceneEntity(): ECSYThreeEntity | null {
+    const sceneEntity =
+      this.queries.renderer.results[0]?.getComponent(WebGLRendererComponent)?.scene;
+
+    if (!sceneEntity) {
+      console.error('Scene not found');
+      return null;
+    }
+
+    return sceneEntity;
+  }
+
+  private createPlayerEntity(scene: THREE.Scene, model: any, id: string, player: Player): void {
+    const mixer = new THREE.AnimationMixer(model.scene);
+    const animations = GameUtils.setupPlayerAnimations(mixer, model.animations);
+
+    const playerEntity = this.world
+      .createEntity()
+      .addObject3DComponent(model.scene)
+      .addComponent(MovementComponent, { isMoving: false, speed: 1, targetPosition: null })
+      .addComponent(PlayerComponent, { username: player.username, id })
+      .addComponent(PlayerAnimationComponent, { mixer, ...animations });
+
+    scene.add(model.scene);
+
+    const mappedPlayers = GameStore.getState().mappedPlayers;
+    GameStore.update('mappedPlayers', { ...mappedPlayers, [id]: playerEntity.id });
+
+    animations.idle.play();
   }
 }
