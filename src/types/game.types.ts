@@ -21,6 +21,13 @@ export interface Player {
   } | null;
 }
 
+export interface PlayerAnimations {
+  idle: THREE.AnimationAction;
+  run: THREE.AnimationAction;
+  tpose: THREE.AnimationAction;
+  walk: THREE.AnimationAction;
+}
+
 export interface Terrain {
   id: string;
   name: string;
