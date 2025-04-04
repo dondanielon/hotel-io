@@ -12,7 +12,6 @@ import { PlayerAnimationComponent } from '@root/components/player-animation.comp
 
 /**
  * System responsible for managing the camera position and orientation
- * relative to the player's position
  */
 export class CameraSystem extends ECSYThreeSystem {
   static queries = {
@@ -33,9 +32,7 @@ export class CameraSystem extends ECSYThreeSystem {
     this.updateCameraPosition(camera, playerEntity);
   }
 
-  /**
-   * Retrieves the current player entity based on the user's ID
-   */
+  // TODO: Don't log errors if authentication is not yet completed
   private getCurrentPlayerEntity(): ECSYThreeEntity | null {
     const userId = GameStore.getState().user?.id;
     if (!userId) {
@@ -60,9 +57,6 @@ export class CameraSystem extends ECSYThreeSystem {
     return playerEntity;
   }
 
-  /**
-   * Retrieves the camera from the renderer component
-   */
   private getCamera(): THREE.PerspectiveCamera | null {
     const rendererEntity = this.queries.renderer.results[0];
     if (!rendererEntity) {
@@ -85,9 +79,6 @@ export class CameraSystem extends ECSYThreeSystem {
     return camera;
   }
 
-  /**
-   * Updates the camera position and orientation based on player position
-   */
   private updateCameraPosition(camera: THREE.Camera, playerEntity: ECSYThreeEntity): void {
     const playerMesh = playerEntity.getObject3D<THREE.Mesh>();
     if (!playerMesh) {

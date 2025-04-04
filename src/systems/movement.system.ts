@@ -24,9 +24,6 @@ export class MovementSystem extends ECSYThreeSystem {
     });
   }
 
-  /**
-   * Updates the movement and animation state for a single player entity
-   */
   private updatePlayerMovement(entity: ECSYThreeEntity, delta: number): void {
     const playerMesh = entity.getObject3D<THREE.Mesh>();
     const movementComponent = entity.getMutableComponent(MovementComponent);
@@ -39,9 +36,6 @@ export class MovementSystem extends ECSYThreeSystem {
     this.updatePlayerPosition(playerMesh!, movementComponent!, animationComponent!, delta);
   }
 
-  /**
-   * Validates that all required components are present
-   */
   private validateComponents(
     playerMesh?: THREE.Mesh,
     movementComponent?: MovementComponent,
@@ -54,9 +48,6 @@ export class MovementSystem extends ECSYThreeSystem {
     return true;
   }
 
-  /**
-   * Updates the player's position and handles movement-related animations
-   */
   private updatePlayerPosition(
     playerMesh: THREE.Mesh,
     movementComponent: MovementComponent,
@@ -89,16 +80,10 @@ export class MovementSystem extends ECSYThreeSystem {
     playerMesh.rotation.y = this.calculateRotationY(playerMesh.rotation.y, direction, delta);
   }
 
-  /**
-   * Calculates the normalized direction vector from current to target position
-   */
   private calculateMovementDirection(currentPosition: Vector3, targetPosition: Vector3): Vector3 {
     return new Vector3().subVectors(targetPosition, currentPosition).normalize();
   }
 
-  /**
-   * Handles animation state when player is moving
-   */
   private handleMovingState(animationComponent: PlayerAnimationComponent): void {
     if (!animationComponent.walk.isRunning()) {
       animationComponent.idle.fadeOut(MovementSystem.ANIMATION_FADE_DURATION);
@@ -106,9 +91,6 @@ export class MovementSystem extends ECSYThreeSystem {
     }
   }
 
-  /**
-   * Handles animation state when player has stopped
-   */
   private handleStoppedState(animationComponent: PlayerAnimationComponent): void {
     if (animationComponent.walk.isRunning()) {
       animationComponent.walk.fadeOut(MovementSystem.ANIMATION_FADE_DURATION);
@@ -116,9 +98,6 @@ export class MovementSystem extends ECSYThreeSystem {
     }
   }
 
-  /**
-   * Calculates smooth rotation for the player to face movement direction
-   */
   private calculateRotationY(currentRotationY: number, direction: Vector3, delta: number): number {
     const targetRotation = Math.atan2(direction.x, direction.z);
     let rotationDifference = targetRotation - currentRotationY;

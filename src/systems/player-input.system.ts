@@ -50,9 +50,6 @@ export class PlayerInputSystem extends ECSYThreeSystem {
     }
   }
 
-  /**
-   * Handles right-click events for player movement
-   */
   private onRightClick(e: MouseEvent): void {
     e.preventDefault();
 
@@ -69,9 +66,6 @@ export class PlayerInputSystem extends ECSYThreeSystem {
     this.updateClickPointer(scene, intersectionPoint);
   }
 
-  /**
-   * Retrieves the current player entity
-   */
   private getCurrentPlayerEntity(): ECSYThreeEntity | null {
     const userId = GameStore.getState().user?.id;
     if (!userId) {
@@ -96,18 +90,12 @@ export class PlayerInputSystem extends ECSYThreeSystem {
     return playerEntity;
   }
 
-  /**
-   * Retrieves the scene from the renderer component
-   */
   private getScene(): THREE.Scene | null {
     const rendererComponent =
       this.queries.renderer.results[0]?.getComponent(WebGLRendererComponent);
     return rendererComponent?.scene.getObject3D<THREE.Scene>() ?? null;
   }
 
-  /**
-   * Retrieves the camera, terrain, and scene components
-   */
   private getSceneComponents(): {
     camera: THREE.PerspectiveCamera | null;
     terrain: THREE.Mesh | null;
@@ -124,9 +112,6 @@ export class PlayerInputSystem extends ECSYThreeSystem {
     };
   }
 
-  /**
-   * Calculates the intersection point with the terrain
-   */
   private getTerrainIntersection(
     event: MouseEvent,
     camera: THREE.PerspectiveCamera,
@@ -149,9 +134,6 @@ export class PlayerInputSystem extends ECSYThreeSystem {
     return null;
   }
 
-  /**
-   * Updates the player's movement target
-   */
   private updatePlayerMovement(playerEntity: ECSYThreeEntity, targetPosition: THREE.Vector3): void {
     GameStore.update('targetPosition', {
       x: targetPosition.x,
@@ -166,17 +148,11 @@ export class PlayerInputSystem extends ECSYThreeSystem {
     }
   }
 
-  /**
-   * Updates the click pointer visualization
-   */
   private updateClickPointer(scene: THREE.Scene, position: THREE.Vector3): void {
     this.hideClickPointer(scene);
     this.showClickPointer(scene, position);
   }
 
-  /**
-   * Creates and shows the click pointer at the specified position
-   */
   private showClickPointer(scene: THREE.Scene, position: THREE.Vector3): void {
     const geometry = new THREE.CircleGeometry(
       PlayerInputSystem.POINTER_RADIUS,
@@ -200,9 +176,6 @@ export class PlayerInputSystem extends ECSYThreeSystem {
     this.clickPointerTimer = PlayerInputSystem.POINTER_DURATION;
   }
 
-  /**
-   * Hides and removes the click pointer
-   */
   private hideClickPointer(scene: THREE.Scene): void {
     if (this.clickPointer) {
       scene.remove(this.clickPointer);
