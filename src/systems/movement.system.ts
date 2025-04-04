@@ -36,10 +36,6 @@ export class MovementSystem extends ECSYThreeSystem {
       return;
     }
 
-    if (!movementComponent!.isMoving || !movementComponent!.targetPosition) {
-      return;
-    }
-
     this.updatePlayerPosition(playerMesh!, movementComponent!, animationComponent!, delta);
   }
 
@@ -67,25 +63,30 @@ export class MovementSystem extends ECSYThreeSystem {
     animationComponent: PlayerAnimationComponent,
     delta: number
   ): void {
+    animationComponent.mixer.update(delta);
+
+    if (!movementComponent!.isMoving || !movementComponent!.targetPosition) {
+      return;
+    }
+
     const direction = this.calculateMovementDirection(
       playerMesh.position,
-      movementComponent.targetPosition!
+      movementComponent.targetPosition
     );
     const distance = movementComponent.speed * delta;
     const step = direction.multiplyScalar(distance);
 
-    if (playerMesh.position.distanceTo(movementComponent.targetPosition!) > distance) {
+    if (playerMesh.position.distanceTo(movementComponent.targetPosition) > distance) {
       this.handleMovingState(animationComponent);
       playerMesh.position.add(step);
     } else {
       this.handleStoppedState(animationComponent);
-      playerMesh.position.copy(movementComponent.targetPosition!);
+      playerMesh.position.copy(movementComponent.targetPosition);
       movementComponent.isMoving = false;
       movementComponent.targetPosition = null;
     }
 
     playerMesh.rotation.y = this.calculateRotationY(playerMesh.rotation.y, direction, delta);
-    animationComponent.mixer.update(delta);
   }
 
   /**
