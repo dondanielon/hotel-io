@@ -21,6 +21,10 @@
 
     "baseUrl": ".",
 
+    /* Ammo.js */
+    "allowSyntheticDefaultImports": true,
+    "esModuleInterop": true,
+
     "paths": {
       "@root/*": ["src/*"],
       "@components/*": ["src/components/*"],

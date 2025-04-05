@@ -6,6 +6,7 @@ import { PlayerInputSystem } from './systems/player-input.system';
 import { PlayerComponent } from './components/player.component';
 import { PlayerAnimationComponent } from './components/player-animation.component';
 import { MovementComponent } from './components/movement.component';
+import Stats from 'stats.js';
 
 import {
   ECSYThreeEntity,
@@ -29,7 +30,7 @@ export class Game {
       .registerComponent(PlayerAnimationComponent)
       .registerComponent(MovementComponent)
       .registerSystem(NetworkSystem, { priority: 0 })
-      .registerSystem(CameraSystem)
+      // .registerSystem(CameraSystem)
       .registerSystem(MovementSystem)
       .registerSystem(PlayerInputSystem)
       .registerSystem(WebGLRendererSystem, { priority: 999 });
@@ -47,9 +48,16 @@ export class Game {
     camera.position.set(0, 10, 10);
     camera.lookAt(0, 0, 0);
 
+    const stats = new Stats();
+    stats.showPanel(0);
+
+    document.body.appendChild(stats.dom);
     document.body.appendChild(renderer.domElement);
+
     renderer.setAnimationLoop(() => {
+      stats.begin();
       this.world.execute(clock.getDelta(), clock.elapsedTime);
+      stats.end();
     });
 
     const sceneEntity = this.world.createEntity().addObject3DComponent(scene);
