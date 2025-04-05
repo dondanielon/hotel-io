@@ -112,21 +112,18 @@ export class NetworkSystem extends ECSYThreeSystem {
         const sceneEntity = this.getSceneEntity();
         if (!sceneEntity) return;
 
-        const scene = sceneEntity.getObject3D<THREE.Scene>();
-        if (!scene) return;
+        const scene = sceneEntity.getObject3D<THREE.Scene>()!;
 
-        const lobbyState = payload as LobbyState;
-        const terrainPoints = lobbyState.terrain.points.map(
-          (point) => new THREE.Vector2(point.x, point.y)
-        );
+        const { terrain, players } = payload as LobbyState;
+        const terrainPoints = terrain.points.map((point) => new THREE.Vector2(point.x, point.y));
 
-        const terrain = GameUtils.createTerrain(terrainPoints, NetworkSystem.TERRAIN_POSITION);
+        const terrainMesh = GameUtils.createTerrain(terrainPoints, NetworkSystem.TERRAIN_POSITION);
         this.world
           .createEntity()
-          .addObject3DComponent(terrain, sceneEntity)
+          .addObject3DComponent(terrainMesh, sceneEntity)
           .addComponent(TerrainComponent);
 
-        for (const [id, player] of Object.entries(lobbyState.players)) {
+        for (const [id, player] of Object.entries(players)) {
           this.gltfLoader.load('/models/girl.glb', (model) => {
             model.scene.scale.set(1, 1, 1);
             model.scene.position.set(0, 0, 0);
