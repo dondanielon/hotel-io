@@ -58,10 +58,9 @@ export class MovementSystem extends ECSYThreeSystem {
       return;
     }
 
-    const direction = this.calculateMovementDirection(
-      playerMesh.position,
-      movementComponent.targetPosition
-    );
+    const direction = new Vector3()
+      .subVectors(movementComponent.targetPosition, playerMesh.position)
+      .normalize();
     const distance = movementComponent.speed * delta;
     const step = direction.multiplyScalar(distance);
 
@@ -76,10 +75,6 @@ export class MovementSystem extends ECSYThreeSystem {
     }
 
     playerMesh.rotation.y = this.calculateRotationY(playerMesh.rotation.y, direction, delta);
-  }
-
-  private calculateMovementDirection(currentPosition: Vector3, targetPosition: Vector3): Vector3 {
-    return new Vector3().subVectors(targetPosition, currentPosition).normalize();
   }
 
   private handleMovingState(animationComponent: PlayerAnimationComponent): void {
