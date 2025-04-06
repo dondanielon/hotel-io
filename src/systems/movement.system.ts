@@ -4,14 +4,12 @@ import { PlayerAnimationComponent } from '@root/components/player-animation.comp
 import { PlayerComponent } from '@root/components/player.component';
 import { ECSYThreeEntity, ECSYThreeSystem } from 'ecsy-three';
 import { Vector3 } from 'three';
+import { Constants } from '@root/constants';
 
 /**
  * System responsible for handling player movement and animations
  */
 export class MovementSystem extends ECSYThreeSystem {
-  private static readonly ROTATION_SPEED = 10;
-  private static readonly ANIMATION_FADE_DURATION = 0.2;
-
   static queries = {
     players: {
       components: [PlayerComponent, MovementComponent, PlayerAnimationComponent],
@@ -86,15 +84,15 @@ export class MovementSystem extends ECSYThreeSystem {
 
   private handleMovingState(animationComponent: PlayerAnimationComponent): void {
     if (!animationComponent.walk.isRunning()) {
-      animationComponent.idle.fadeOut(MovementSystem.ANIMATION_FADE_DURATION);
-      animationComponent.walk.reset().fadeIn(MovementSystem.ANIMATION_FADE_DURATION).play();
+      animationComponent.idle.fadeOut(Constants.PLAYER_ANIMATION_FADE_DURATION);
+      animationComponent.walk.reset().fadeIn(Constants.PLAYER_ANIMATION_FADE_DURATION).play();
     }
   }
 
   private handleStoppedState(animationComponent: PlayerAnimationComponent): void {
     if (animationComponent.walk.isRunning()) {
-      animationComponent.walk.fadeOut(MovementSystem.ANIMATION_FADE_DURATION);
-      animationComponent.idle.reset().fadeIn(MovementSystem.ANIMATION_FADE_DURATION).play();
+      animationComponent.walk.fadeOut(Constants.PLAYER_ANIMATION_FADE_DURATION);
+      animationComponent.idle.reset().fadeIn(Constants.PLAYER_ANIMATION_FADE_DURATION).play();
     }
   }
 
@@ -106,8 +104,7 @@ export class MovementSystem extends ECSYThreeSystem {
     if (rotationDifference > Math.PI) rotationDifference -= Math.PI * 2;
     if (rotationDifference < -Math.PI) rotationDifference += Math.PI * 2;
 
-    const smoothAngle =
-      currentRotationY + rotationDifference * MovementSystem.ROTATION_SPEED * delta + Math.PI;
+    const smoothAngle = currentRotationY + Constants.PLAYER_ROTATION_SPEED * delta + Math.PI;
     return THREE.MathUtils.euclideanModulo(smoothAngle, Math.PI * 2) - Math.PI;
   }
 }

@@ -23,8 +23,8 @@ type Message = { event: WebSocketEvent; payload: any };
  * System responsible for handling network communication and game state synchronization.
  */
 export class NetworkSystem extends ECSYThreeSystem {
-  private static readonly WS_URL = 'ws://localhost:80';
   // Hardcoded for now
+  private static readonly WS_URL = 'ws://localhost:80';
   private static readonly TERRAIN_POSITION = new THREE.Vector3(-5, 0, 5);
 
   private socket: WebSocket;

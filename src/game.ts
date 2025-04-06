@@ -1,5 +1,5 @@
 import * as THREE from 'three';
-import { CAMERA_ASPECT_RATIO, CAMERA_FAR_VIEW, CAMERA_FOV, CAMERA_NEAR_VIEW } from './constants';
+import { Constants } from './constants';
 import { NetworkSystem } from './systems/network.system';
 import { TerrainComponent } from './components/terrain.component';
 import { PlayerInputSystem } from './systems/player-input.system';
@@ -39,10 +39,10 @@ export class Game {
     const clock = new THREE.Clock();
     const scene = new THREE.Scene();
     const camera = new THREE.PerspectiveCamera(
-      CAMERA_FOV,
-      CAMERA_ASPECT_RATIO,
-      CAMERA_NEAR_VIEW,
-      CAMERA_FAR_VIEW
+      Constants.CAMERA_FOV,
+      Constants.CAMERA_ASPECT_RATIO,
+      Constants.CAMERA_NEAR_VIEW,
+      Constants.CAMERA_FAR_VIEW
     );
 
     camera.position.set(0, 10, 10);

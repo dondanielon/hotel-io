@@ -1,10 +1,6 @@
 import * as THREE from 'three';
 import { ECSYThreeEntity, ECSYThreeSystem, WebGLRendererComponent } from 'ecsy-three';
-import {
-  CAMERA_SYSTEM_X_POSITION_ADD,
-  CAMERA_SYSTEM_Y_POSITION_ADD,
-  CAMERA_SYSTEM_Z_POSITION_ADD,
-} from '@root/constants';
+import { Constants } from '@root/constants';
 import { GameStore } from '@root/stores/game.store';
 import { PlayerComponent } from '@root/components/player.component';
 import { MovementComponent } from '@root/components/movement.component';
@@ -88,9 +84,9 @@ export class CameraSystem extends ECSYThreeSystem {
 
     try {
       camera.position.set(
-        playerMesh.position.x + CAMERA_SYSTEM_X_POSITION_ADD,
-        playerMesh.position.y + CAMERA_SYSTEM_Y_POSITION_ADD,
-        playerMesh.position.z + CAMERA_SYSTEM_Z_POSITION_ADD
+        playerMesh.position.x + Constants.CAMERA_SYSTEM_X_POSITION_ADD,
+        playerMesh.position.y + Constants.CAMERA_SYSTEM_Y_POSITION_ADD,
+        playerMesh.position.z + Constants.CAMERA_SYSTEM_Z_POSITION_ADD
       );
       camera.lookAt(playerMesh.position);
     } catch (error) {

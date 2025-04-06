@@ -10,20 +10,14 @@ import { GameStore } from '@root/stores/game.store';
 import { TerrainComponent } from '@root/components/terrain.component';
 import { PlayerComponent } from '@root/components/player.component';
 import { MovementComponent } from '@root/components/movement.component';
-
+import { Constants } from '@root/constants';
 /**
  * System responsible for handling player input and movement
  */
 export class PlayerInputSystem extends ECSYThreeSystem {
-  private static readonly RAYCASTER = new THREE.Raycaster();
-  private static readonly POINTER_DURATION = 1;
-  private static readonly POINTER_RADIUS = 0.1;
-  private static readonly POINTER_SEGMENTS = 15;
-  private static readonly POINTER_COLOR = 0x00ff00;
-  private static readonly POINTER_OFFSET = 0.01;
-
   private clickPointer: THREE.Mesh<THREE.CircleGeometry, THREE.MeshBasicMaterial> | null = null;
   private clickPointerTimer: number = 0;
+  private raycaster = new THREE.Raycaster();
 
   static queries = {
     terrain: { components: [TerrainComponent, Object3DComponent, MeshTagComponent] },
@@ -45,7 +39,7 @@ export class PlayerInputSystem extends ECSYThreeSystem {
     } else {
       this.clickPointer.material.opacity = Math.max(
         0,
-        this.clickPointerTimer / PlayerInputSystem.POINTER_DURATION
+        this.clickPointerTimer / Constants.POINTER_DURATION
       );
     }
   }
@@ -122,8 +116,8 @@ export class PlayerInputSystem extends ECSYThreeSystem {
       -(event.clientY / window.innerHeight) * 2 + 1
     );
 
-    PlayerInputSystem.RAYCASTER.setFromCamera(mouse, camera);
-    const intersects = PlayerInputSystem.RAYCASTER.intersectObject(terrain);
+    this.raycaster.setFromCamera(mouse, camera);
+    const intersects = this.raycaster.intersectObject(terrain);
 
     if (intersects.length > 0) {
       const point = intersects[0].point;
@@ -154,26 +148,19 @@ export class PlayerInputSystem extends ECSYThreeSystem {
   }
 
   private showClickPointer(scene: THREE.Scene, position: THREE.Vector3): void {
-    const geometry = new THREE.CircleGeometry(
-      PlayerInputSystem.POINTER_RADIUS,
-      PlayerInputSystem.POINTER_SEGMENTS
-    );
+    const geometry = new THREE.CircleGeometry(Constants.POINTER_RADIUS, Constants.POINTER_SEGMENTS);
     const material = new THREE.MeshBasicMaterial({
-      color: PlayerInputSystem.POINTER_COLOR,
+      color: Constants.POINTER_COLOR,
       opacity: 1,
       transparent: true,
       side: 2,
     });
 
     this.clickPointer = new THREE.Mesh(geometry, material);
-    this.clickPointer.position.set(
-      position.x,
-      position.y + PlayerInputSystem.POINTER_OFFSET,
-      position.z
-    );
+    this.clickPointer.position.set(position.x, position.y + Constants.POINTER_OFFSET, position.z);
     this.clickPointer.rotation.x = -Math.PI / 2;
     scene.add(this.clickPointer);
-    this.clickPointerTimer = PlayerInputSystem.POINTER_DURATION;
+    this.clickPointerTimer = Constants.POINTER_DURATION;
   }
 
   private hideClickPointer(scene: THREE.Scene): void {
