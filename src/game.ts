@@ -86,7 +86,7 @@ export class Game {
     scene.add(ambientLight);
   }
 
-  initializeLobby() {
-    throw new Error('Not implemented');
+  setupLobby() {
+    console.log('lobby initialized');
   }
 }

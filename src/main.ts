@@ -5,7 +5,8 @@ import { UserService } from './services/user.service';
 async function bootstrap() {
   // Initialize Ammo.js
   await Ammo.bind(Ammo)(Ammo);
-  new Game();
+  const game = new Game();
+  game.setupLobby();
   window.addEventListener('keydown', (event) => {
     if (event.key.toLowerCase() === 'z') {
       UserService.login('admin@tyenet.com', 'Secure1');
