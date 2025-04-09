@@ -30,7 +30,7 @@ export class Game {
       .registerComponent(PlayerAnimationComponent)
       .registerComponent(MovementComponent)
       .registerSystem(NetworkSystem, { priority: 0 })
-      // .registerSystem(CameraSystem)
+      .registerSystem(CameraSystem)
       .registerSystem(MovementSystem)
       .registerSystem(PlayerInputSystem)
       .registerSystem(WebGLRendererSystem, { priority: 999 });
