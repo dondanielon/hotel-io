@@ -12,7 +12,7 @@ A vibrant multiplayer game that combines the strategic gameplay of League of Leg
 
 ### Prerequisites
 
-- Node.js 18 or higher
+- Node.js 20 or higher
 - npm or yarn
 
 ### Installation
