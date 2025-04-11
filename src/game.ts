@@ -16,6 +16,7 @@ import {
 } from 'ecsy-three';
 import { MovementSystem } from './systems/movement.system';
 import { CameraSystem } from './systems/camera.system';
+import { CommandSystem } from './systems/command.system';
 
 export class Game {
   private world: ECSYThreeWorld;
@@ -33,6 +34,7 @@ export class Game {
       .registerSystem(CameraSystem)
       .registerSystem(MovementSystem)
       .registerSystem(PlayerInputSystem)
+      .registerSystem(CommandSystem)
       .registerSystem(WebGLRendererSystem, { priority: 999 });
 
     const renderer = new THREE.WebGLRenderer({ antialias: true });
