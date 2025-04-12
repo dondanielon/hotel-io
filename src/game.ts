@@ -1,6 +1,6 @@
 import * as THREE from 'three';
 import { Constants } from './constants';
-import { NetworkSystem } from './systems/network.system';
+import { SocketSystem } from './systems/socket.system';
 import { TerrainComponent } from './components/terrain.component';
 import { PlayerInputSystem } from './systems/player-input.system';
 import { PlayerComponent } from './components/player.component';
@@ -30,7 +30,7 @@ export class Game {
       .registerComponent(PlayerComponent)
       .registerComponent(PlayerAnimationComponent)
       .registerComponent(MovementComponent)
-      .registerSystem(NetworkSystem, { priority: 0 })
+      .registerSystem(SocketSystem, { priority: 0 })
       .registerSystem(CameraSystem)
       .registerSystem(MovementSystem)
       .registerSystem(PlayerInputSystem)

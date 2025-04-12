@@ -22,7 +22,7 @@ type Message = { event: WebSocketEvent; payload: any };
 /**
  * System responsible for handling network communication and game state synchronization.
  */
-export class NetworkSystem extends ECSYThreeSystem {
+export class SocketSystem extends ECSYThreeSystem {
   // Hardcoded for now
   private static readonly WS_URL = 'ws://localhost:80';
   private static readonly TERRAIN_POSITION = new THREE.Vector3(-5, 0, 5);
@@ -39,7 +39,7 @@ export class NetworkSystem extends ECSYThreeSystem {
   constructor(world: ECSYThreeWorld) {
     super(world);
     this.messageQueue = [];
-    this.socket = new WebSocket(NetworkSystem.WS_URL);
+    this.socket = new WebSocket(SocketSystem.WS_URL);
     this.socket.binaryType = 'arraybuffer';
     this.gltfLoader = new GLTFLoader();
     this.setupWebSocket();
@@ -117,7 +117,7 @@ export class NetworkSystem extends ECSYThreeSystem {
         const { terrain, players } = payload as LobbyState;
         const terrainPoints = terrain.points.map((point) => new THREE.Vector2(point.x, point.y));
 
-        const terrainMesh = GameUtils.createTerrain(terrainPoints, NetworkSystem.TERRAIN_POSITION);
+        const terrainMesh = GameUtils.createTerrain(terrainPoints, SocketSystem.TERRAIN_POSITION);
         this.world
           .createEntity()
           .addObject3DComponent(terrainMesh, sceneEntity)
