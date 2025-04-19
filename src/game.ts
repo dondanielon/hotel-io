@@ -17,6 +17,7 @@ import {
 import { MovementSystem } from './systems/movement.system';
 import { CameraSystem } from './systems/camera.system';
 import { CommandSystem } from './systems/command.system';
+import { AnimationSystem } from './systems/animation.system';
 
 export class Game {
   private world: ECSYThreeWorld;
@@ -33,6 +34,7 @@ export class Game {
       .registerSystem(SocketSystem, { priority: 0 })
       .registerSystem(CameraSystem)
       .registerSystem(MovementSystem)
+      .registerSystem(AnimationSystem)
       .registerSystem(PlayerInputSystem)
       .registerSystem(CommandSystem)
       .registerSystem(WebGLRendererSystem, { priority: 999 });
