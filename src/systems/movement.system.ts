@@ -2,7 +2,7 @@ import * as THREE from 'three';
 import { MovementComponent } from '@root/components/movement.component';
 import { PlayerAnimationComponent } from '@root/components/player-animation.component';
 import { PlayerComponent } from '@root/components/player.component';
-import { ECSYThreeEntity, ECSYThreeSystem } from 'ecsy-three';
+import { ECSYThreeSystem } from 'ecsy-three';
 import { Vector3 } from 'three';
 import { Constants } from '@root/constants';
 
@@ -18,63 +18,33 @@ export class MovementSystem extends ECSYThreeSystem {
 
   execute(delta: number, _time: number): void {
     this.queries.players.results.forEach((entity) => {
-      this.updatePlayerMovement(entity, delta);
+      const playerMesh = entity.getObject3D<THREE.Mesh>()!;
+      const movementComponent = entity.getMutableComponent(MovementComponent)!;
+      const animationComponent = entity.getComponent(PlayerAnimationComponent)!;
+
+      animationComponent.mixer.update(delta);
+
+      if (!movementComponent.isMoving || !movementComponent.targetPosition) return;
+
+      const distance = movementComponent.speed * delta;
+      const direction = new Vector3()
+        .subVectors(movementComponent.targetPosition, playerMesh.position)
+        .normalize();
+
+      const step = direction.multiplyScalar(distance);
+
+      if (playerMesh.position.distanceTo(movementComponent.targetPosition) > distance) {
+        this.handleMovingState(animationComponent);
+        playerMesh.position.add(step);
+      } else {
+        this.handleStoppedState(animationComponent);
+        playerMesh.position.copy(movementComponent.targetPosition);
+        movementComponent.isMoving = false;
+        movementComponent.targetPosition = null;
+      }
+
+      playerMesh.rotation.y = this.calculateRotationY(playerMesh.rotation.y, direction, delta);
     });
-  }
-
-  private updatePlayerMovement(entity: ECSYThreeEntity, delta: number): void {
-    const playerMesh = entity.getObject3D<THREE.Mesh>();
-    const movementComponent = entity.getMutableComponent(MovementComponent);
-    const animationComponent = entity.getComponent(PlayerAnimationComponent);
-
-    if (!this.validateComponents(playerMesh, movementComponent, animationComponent)) {
-      return;
-    }
-
-    this.updatePlayerPosition(playerMesh!, movementComponent!, animationComponent!, delta);
-  }
-
-  private validateComponents(
-    playerMesh?: THREE.Mesh,
-    movementComponent?: MovementComponent,
-    animationComponent?: PlayerAnimationComponent
-  ): boolean {
-    if (!playerMesh || !movementComponent || !animationComponent) {
-      console.error('Required component or mesh not found');
-      return false;
-    }
-    return true;
-  }
-
-  private updatePlayerPosition(
-    playerMesh: THREE.Mesh,
-    movementComponent: MovementComponent,
-    animationComponent: PlayerAnimationComponent,
-    delta: number
-  ): void {
-    animationComponent.mixer.update(delta);
-
-    if (!movementComponent!.isMoving || !movementComponent!.targetPosition) {
-      return;
-    }
-
-    const direction = new Vector3()
-      .subVectors(movementComponent.targetPosition, playerMesh.position)
-      .normalize();
-    const distance = movementComponent.speed * delta;
-    const step = direction.multiplyScalar(distance);
-
-    if (playerMesh.position.distanceTo(movementComponent.targetPosition) > distance) {
-      this.handleMovingState(animationComponent);
-      playerMesh.position.add(step);
-    } else {
-      this.handleStoppedState(animationComponent);
-      playerMesh.position.copy(movementComponent.targetPosition);
-      movementComponent.isMoving = false;
-      movementComponent.targetPosition = null;
-    }
-
-    playerMesh.rotation.y = this.calculateRotationY(playerMesh.rotation.y, direction, delta);
   }
 
   private handleMovingState(animationComponent: PlayerAnimationComponent): void {
@@ -99,7 +69,9 @@ export class MovementSystem extends ECSYThreeSystem {
     if (rotationDifference > Math.PI) rotationDifference -= Math.PI * 2;
     if (rotationDifference < -Math.PI) rotationDifference += Math.PI * 2;
 
-    const smoothAngle = currentRotationY + Constants.PLAYER_ROTATION_SPEED * delta + Math.PI;
-    return THREE.MathUtils.euclideanModulo(smoothAngle, Math.PI * 2) - Math.PI;
+    const smoothAngle =
+      currentRotationY + rotationDifference * Constants.PLAYER_ROTATION_SPEED * delta;
+
+    return THREE.MathUtils.euclideanModulo(smoothAngle + Math.PI, Math.PI * 2) - Math.PI;
   }
 }
