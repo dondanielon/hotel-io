@@ -1,3 +1,9 @@
+import {
+  ECSYThreeEntity,
+  ECSYThreeWorld,
+  WebGLRendererComponent,
+  WebGLRendererSystem,
+} from 'ecsy-three';
 import * as THREE from 'three';
 import { Constants } from './constants';
 import { SocketSystem } from './systems/socket.system';
@@ -7,17 +13,11 @@ import { PlayerComponent } from './components/player.component';
 import { PlayerAnimationComponent } from './components/player-animation.component';
 import { MovementComponent } from './components/movement.component';
 import Stats from 'stats.js';
-
-import {
-  ECSYThreeEntity,
-  ECSYThreeWorld,
-  WebGLRendererComponent,
-  WebGLRendererSystem,
-} from 'ecsy-three';
 import { MovementSystem } from './systems/movement.system';
 import { CameraSystem } from './systems/camera.system';
 import { CommandSystem } from './systems/command.system';
 import { AnimationSystem } from './systems/animation.system';
+import { MouseLocationSystem } from './systems/mouse-location.system';
 
 export class Game {
   private world: ECSYThreeWorld;
@@ -33,6 +33,7 @@ export class Game {
       .registerComponent(MovementComponent)
       .registerSystem(SocketSystem, { priority: 0 })
       .registerSystem(CameraSystem)
+      .registerSystem(MouseLocationSystem)
       .registerSystem(MovementSystem)
       .registerSystem(AnimationSystem)
       .registerSystem(PlayerInputSystem)
