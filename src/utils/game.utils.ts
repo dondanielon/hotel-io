@@ -1,3 +1,4 @@
+import { GameStore } from '@root/stores/game.store';
 import { PlayerAnimations } from '@root/types/game.types';
 import * as THREE from 'three';
 
@@ -11,7 +12,7 @@ export class GameUtils {
     });
     const terrainMaterial = new THREE.MeshToonMaterial({
       side: 1,
-      color: new THREE.Color(0x1a1a1a), // Darker shade of black
+      color: new THREE.Color(0x3a3a3a),
     });
 
     const terrainMesh = new THREE.Mesh(terrainGeometry, terrainMaterial);
@@ -32,5 +33,9 @@ export class GameUtils {
       tpose: mixer.clipAction(animations.find((x) => x.name === 'tpose')!),
       walk: mixer.clipAction(animations.find((x) => x.name === 'walk')!),
     };
+  }
+
+  public static getMainPlayerEntityId(): number | undefined {
+    return GameStore.getState().mappedPlayers[GameStore.getState().user?.id ?? ''];
   }
 }
