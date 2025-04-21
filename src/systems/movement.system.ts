@@ -6,7 +6,7 @@ import { Vector3 } from 'three';
 import { Constants } from '@root/constants';
 
 /**
- * System responsible for handling player movement and animations
+ * System responsible for handling player movement
  */
 export class MovementSystem extends ECSYThreeSystem {
   static queries = {

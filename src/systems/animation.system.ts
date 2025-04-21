@@ -4,6 +4,9 @@ import { PlayerComponent } from '@root/components/player.component';
 import { Constants } from '@root/constants';
 import { ECSYThreeSystem } from 'ecsy-three';
 
+/**
+ * System responsible for handling player animations
+ */
 export class AnimationSystem extends ECSYThreeSystem {
   static queries = {
     players: {
