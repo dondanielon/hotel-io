@@ -28,7 +28,7 @@ export class PlayerInputSystem extends ECSYThreeSystem {
 
   init(): void {
     window.addEventListener('contextmenu', this.onRightClick.bind(this));
-    window.addEventListener('keydown', this.onKeyDown.bind(this));
+    window.addEventListener('keypress', this.onKeyDown.bind(this));
   }
 
   execute(delta: number, _time: number): void {
@@ -84,8 +84,41 @@ export class PlayerInputSystem extends ECSYThreeSystem {
   private onKeyDown(event: KeyboardEvent): void {
     switch (event.key.toLowerCase()) {
       case 'w': {
+        const playerEntityId = GameUtils.getMainPlayerEntityId();
+        const playerEntity = this.queries.players.results.find(
+          (entity) => entity.id === playerEntityId
+        );
+
+        if (!playerEntity) {
+          console.warn('Main player entity not found');
+          return;
+        }
+
+        const { camera, terrain, scene } = this.getSceneElements();
         const mouseLocation = GameStore.getState().mouseLocation;
-        console.log(mouseLocation);
+        this.raycaster.setFromCamera(mouseLocation, camera);
+        const intersects = this.raycaster.intersectObject(terrain);
+
+        if (intersects.length > 0) {
+          const playerMesh = playerEntity.getObject3D<THREE.Mesh>()!;
+          const movementComponent = playerEntity.getMutableComponent(MovementComponent)!;
+
+          // Calculate dash direction from player to mouse position
+          const mousePoint = intersects[0].point;
+          const dashDirection = new THREE.Vector3()
+            .subVectors(mousePoint, playerMesh.position)
+            .normalize();
+
+          // Set up dash properties
+          movementComponent.isDashing = true;
+          movementComponent.dashDirection = dashDirection;
+          movementComponent.dashTimer = Constants.PLAYER_DASH_DURATION;
+
+          // Clear target position and stop normal movement
+          // movementComponent.isMoving = false;
+          // movementComponent.targetPosition = null;
+          // GameStore.update('targetPosition', null);
+        }
         break;
       }
     }

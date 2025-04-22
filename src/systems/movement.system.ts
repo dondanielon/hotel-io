@@ -20,6 +20,32 @@ export class MovementSystem extends ECSYThreeSystem {
       const playerMesh = entity.getObject3D<THREE.Mesh>()!;
       const movementComponent = entity.getMutableComponent(MovementComponent)!;
 
+      // Handle dashing
+      if (movementComponent.isDashing && movementComponent.dashDirection) {
+        movementComponent.dashTimer -= delta;
+
+        if (movementComponent.dashTimer > 0) {
+          // Apply dash movement
+          const dashStep = movementComponent.dashDirection
+            .clone()
+            .multiplyScalar(Constants.PLAYER_DASH_SPEED * delta);
+          playerMesh.position.add(dashStep);
+
+          // Update rotation during dash
+          playerMesh.rotation.y = Math.atan2(
+            movementComponent.dashDirection.x,
+            movementComponent.dashDirection.z
+          );
+        } else {
+          // End dash
+          movementComponent.isDashing = false;
+          movementComponent.dashDirection = null;
+          movementComponent.dashTimer = 0;
+        }
+        return;
+      }
+
+      // Handle normal movement
       if (!movementComponent.isMoving || !movementComponent.targetPosition) return;
 
       const distance = movementComponent.speed * delta;

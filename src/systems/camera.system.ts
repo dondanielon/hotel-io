@@ -83,12 +83,14 @@ export class CameraSystem extends ECSYThreeSystem {
     }
 
     try {
-      camera.position.set(
-        playerMesh.position.x + Constants.CAMERA_SYSTEM_X_POSITION_ADD,
-        playerMesh.position.y + Constants.CAMERA_SYSTEM_Y_POSITION_ADD,
-        playerMesh.position.z + Constants.CAMERA_SYSTEM_Z_POSITION_ADD
-      );
-      camera.lookAt(playerMesh.position);
+      // camera.position.set(
+      //   playerMesh.position.x + Constants.CAMERA_SYSTEM_X_POSITION_ADD,
+      //   playerMesh.position.y + Constants.CAMERA_SYSTEM_Y_POSITION_ADD,
+      //   playerMesh.position.z + Constants.CAMERA_SYSTEM_Z_POSITION_ADD
+      // );
+
+      // camera.lookAt(playerMesh.position);
+      camera.lookAt(new THREE.Vector3(0, 0, 0));
     } catch (error) {
       console.error('Error updating camera position:', error);
     }
