@@ -22,6 +22,11 @@ export class AnimationSystem extends ECSYThreeSystem {
 
       animationComponent.mixer.update(delta);
 
+      if (movementComponent.isDashing && animationComponent.walk.isRunning()) {
+        animationComponent.walk.fadeOut(Constants.PLAYER_ANIMATION_FADE_DURATION);
+        animationComponent.idle.reset().fadeIn(Constants.PLAYER_ANIMATION_FADE_DURATION).play();
+      }
+
       if (!movementComponent.targetPosition) return;
 
       const distance = movementComponent.speed * delta;
