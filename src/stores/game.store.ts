@@ -7,6 +7,7 @@ export interface GameState {
   requestGameList: boolean;
   targetPosition: { x: number; y: number; z: number } | null;
   user: User | null;
+  lastDashTime: number;
 }
 
 export const GameStore = new Store<GameState>({
@@ -15,4 +16,5 @@ export const GameStore = new Store<GameState>({
   requestGameList: false,
   targetPosition: null,
   user: null,
+  lastDashTime: 0,
 });

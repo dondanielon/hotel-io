@@ -84,6 +84,9 @@ export class PlayerInputSystem extends ECSYThreeSystem {
   private onKeyDown(event: KeyboardEvent): void {
     switch (event.key.toLowerCase()) {
       case 'w': {
+        const lastDashTime = GameStore.getState().lastDashTime;
+        if (lastDashTime > Date.now() - 3000) return;
+
         const playerEntityId = GameUtils.getMainPlayerEntityId();
         const playerEntity = this.queries.players.results.find(
           (entity) => entity.id === playerEntityId
@@ -94,7 +97,7 @@ export class PlayerInputSystem extends ECSYThreeSystem {
           return;
         }
 
-        const { camera, terrain, scene } = this.getSceneElements();
+        const { camera, terrain } = this.getSceneElements();
         const mouseLocation = GameStore.getState().mouseLocation;
         this.raycaster.setFromCamera(mouseLocation, camera);
         const intersects = this.raycaster.intersectObject(terrain);
@@ -105,6 +108,7 @@ export class PlayerInputSystem extends ECSYThreeSystem {
 
           // Calculate dash direction from player to mouse position
           const mousePoint = intersects[0].point;
+          mousePoint.y = 0;
           const dashDirection = new THREE.Vector3()
             .subVectors(mousePoint, playerMesh.position)
             .normalize();
@@ -115,9 +119,10 @@ export class PlayerInputSystem extends ECSYThreeSystem {
           movementComponent.dashTimer = Constants.PLAYER_DASH_DURATION;
 
           // Clear target position and stop normal movement
-          // movementComponent.isMoving = false;
-          // movementComponent.targetPosition = null;
-          // GameStore.update('targetPosition', null);
+          movementComponent.isMoving = false;
+          movementComponent.targetPosition = null;
+          GameStore.update('targetPosition', null);
+          GameStore.update('lastDashTime', Date.now());
         }
         break;
       }

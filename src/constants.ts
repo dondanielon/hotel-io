@@ -26,6 +26,6 @@ export class Constants {
   static readonly POINTER_SEGMENTS = 15;
   static readonly POINTER_COLOR = 0x00ff00;
   static readonly POINTER_OFFSET = 0.01;
-  static readonly PLAYER_DASH_SPEED = 20;
-  static readonly PLAYER_DASH_DURATION = 0.1;
+  static readonly PLAYER_DASH_SPEED = 10;
+  static readonly PLAYER_DASH_DURATION = 0.2;
 }
