@@ -158,7 +158,14 @@ export class SocketSystem extends ECSYThreeSystem {
     const playerEntity = this.world
       .createEntity()
       .addObject3DComponent(model.scene)
-      .addComponent(MovementComponent, { isMoving: false, speed: 1, targetPosition: null })
+      .addComponent(MovementComponent, {
+        isMoving: false,
+        speed: 1,
+        targetPosition: null,
+        isDashing: false,
+        dashDirection: null,
+        dashTimer: 0,
+      })
       .addComponent(PlayerComponent, { username: player.username, id })
       .addComponent(PlayerAnimationComponent, { mixer, ...animations });
 
