@@ -1,21 +1,21 @@
-import * as THREE from 'three';
-import { WebSocketEvent } from '@root/enums/network.enums';
-import { GameState, GameStore } from '@root/stores/game.store';
-import { PlayerComponent } from '@root/components/player.component';
-import { GLTFLoader } from 'three/examples/jsm/Addons.js';
-import { PlayerAnimationComponent } from '@root/components/player-animation.component';
-import { MovementComponent } from '@root/components/movement.component';
-import { TerrainComponent } from '@root/components/terrain.component';
+import * as THREE from "three";
+import { WebSocketEvent } from "@root/enums/network.enums";
+import { GameState, GameStore } from "@root/stores/game.store";
+import { PlayerComponent } from "@root/components/player.component";
+import { GLTFLoader } from "three/examples/jsm/Addons.js";
+import { PlayerAnimationComponent } from "@root/components/player-animation.component";
+import { MovementComponent } from "@root/components/movement.component";
+import { TerrainComponent } from "@root/components/terrain.component";
 import {
-  ECSYThreeEntity,
   ECSYThreeSystem,
   ECSYThreeWorld,
   MeshTagComponent,
   Object3DComponent,
   WebGLRendererComponent,
-} from 'ecsy-three';
-import { LobbyState, Player } from '@root/types/game.types';
-import { GameUtils } from '@root/utils/game.utils';
+} from "ecsy-three";
+import { LobbyState, Player } from "@root/types/game.types";
+import { GameUtils } from "@root/utils/game.utils";
+import { GameAnimationAction } from "@root/enums/game.enums";
 
 type Message = { event: WebSocketEvent; payload: any };
 
@@ -24,7 +24,7 @@ type Message = { event: WebSocketEvent; payload: any };
  */
 export class SocketSystem extends ECSYThreeSystem {
   // Hardcoded for now
-  private static readonly WS_URL = 'ws://localhost:80';
+  private static readonly WS_URL = "ws://localhost:80";
   private static readonly TERRAIN_POSITION = new THREE.Vector3(-5, 0, 5);
 
   private socket: WebSocket;
@@ -32,7 +32,9 @@ export class SocketSystem extends ECSYThreeSystem {
   private gltfLoader: GLTFLoader;
 
   static queries = {
-    terrain: { components: [TerrainComponent, Object3DComponent, MeshTagComponent] },
+    terrain: {
+      components: [TerrainComponent, Object3DComponent, MeshTagComponent],
+    },
     renderer: { components: [WebGLRendererComponent] },
   };
 
@@ -40,14 +42,14 @@ export class SocketSystem extends ECSYThreeSystem {
     super(world);
     this.messageQueue = [];
     this.socket = new WebSocket(SocketSystem.WS_URL);
-    this.socket.binaryType = 'arraybuffer';
+    this.socket.binaryType = "arraybuffer";
     this.gltfLoader = new GLTFLoader();
     this.setupWebSocket();
   }
 
   private setupWebSocket(): void {
-    this.socket.onclose = () => console.log('Disconnected from server');
-    this.socket.onerror = (error) => console.error('WebSocket error:', error);
+    this.socket.onclose = () => console.log("Disconnected from server");
+    this.socket.onerror = (error) => console.error("WebSocket error:", error);
     this.socket.onopen = () => GameStore.subscribe(this.handleGameStateChange.bind(this));
 
     this.socket.onmessage = (rawMessage) => {
@@ -76,7 +78,7 @@ export class SocketSystem extends ECSYThreeSystem {
 
   private sendMessage(event: WebSocketEvent, payload: string): void {
     if (this.socket.readyState !== WebSocket.OPEN) {
-      console.error('Error sending message: Connection with server dropped');
+      console.error("Error sending message: Connection with server dropped");
       return;
     }
 
@@ -90,65 +92,57 @@ export class SocketSystem extends ECSYThreeSystem {
 
   private handleGameStateChange(state: GameState): void {
     if (state.requestGameList) {
-      this.sendMessage(WebSocketEvent.GamesList, '');
-      GameStore.update('requestGameList', false);
+      this.sendMessage(WebSocketEvent.GamesList, "");
+      GameStore.update("requestGameList", false);
     }
 
     if (state.targetPosition) {
       this.sendMessage(WebSocketEvent.PlayerMove, JSON.stringify(state.targetPosition));
-      GameStore.update('targetPosition', null);
+      GameStore.update("targetPosition", null);
     }
   }
 
   private processMessage({ event, payload }: Message): void {
     switch (event) {
       case WebSocketEvent.Authentication: {
-        GameStore.update('user', payload);
-        this.sendMessage(WebSocketEvent.JoinGame, 'public-game');
+        GameStore.update("user", payload);
+        this.sendMessage(WebSocketEvent.JoinGame, "public-game");
         break;
       }
 
       case WebSocketEvent.JoinGame: {
-        const sceneEntity = this.getSceneEntity();
-        if (!sceneEntity) return;
-
+        const sceneEntity = this.queries.renderer.results[0]?.getComponent(WebGLRendererComponent)?.scene!;
         const scene = sceneEntity.getObject3D<THREE.Scene>()!;
 
         const { terrain, players } = payload as LobbyState;
         const terrainPoints = terrain.points.map((point) => new THREE.Vector2(point.x, point.y));
-
         const terrainMesh = GameUtils.createTerrain(terrainPoints, SocketSystem.TERRAIN_POSITION);
-        this.world
-          .createEntity()
-          .addObject3DComponent(terrainMesh, sceneEntity)
-          .addComponent(TerrainComponent);
+
+        this.world.createEntity().addObject3DComponent(terrainMesh, sceneEntity).addComponent(TerrainComponent);
+
+        this.gltfLoader.load("/models/basic_male.glb", (model) => {
+          model.scene.scale.set(1, 1, 1);
+          model.scene.position.set(0, 0, 0);
+          model.scene.castShadow = true;
+
+          scene.add(model.scene);
+        });
 
         for (const [id, player] of Object.entries(players)) {
-          this.gltfLoader.load('/models/girl.glb', (model) => {
+          this.gltfLoader.load("/models/girl.glb", (model) => {
             model.scene.scale.set(1, 1, 1);
             model.scene.position.set(0, 0, 0);
             model.scene.castShadow = true;
             this.createPlayerEntity(scene, model, id, player);
           });
         }
+
         break;
       }
 
       default:
-        console.warn('Unknown/Unhandled message event:', event);
+        console.warn("Unknown/Unhandled message event:", event);
     }
-  }
-
-  private getSceneEntity(): ECSYThreeEntity | null {
-    const sceneEntity =
-      this.queries.renderer.results[0]?.getComponent(WebGLRendererComponent)?.scene;
-
-    if (!sceneEntity) {
-      console.error('Scene not found');
-      return null;
-    }
-
-    return sceneEntity;
   }
 
   private createPlayerEntity(scene: THREE.Scene, model: any, id: string, player: Player): void {
@@ -167,13 +161,16 @@ export class SocketSystem extends ECSYThreeSystem {
         dashTimer: 0,
       })
       .addComponent(PlayerComponent, { username: player.username, id })
-      .addComponent(PlayerAnimationComponent, { mixer, ...animations });
+      .addComponent(PlayerAnimationComponent, { mixer, currentAction: GameAnimationAction.Idle, ...animations });
 
     scene.add(model.scene);
+    animations.idle.play();
 
     const mappedPlayers = GameStore.getState().mappedPlayers;
-    GameStore.update('mappedPlayers', { ...mappedPlayers, [id]: playerEntity.id });
+    GameStore.update("mappedPlayers", { ...mappedPlayers, [id]: playerEntity.id });
 
-    animations.idle.play();
+    if (id === GameStore.getState().user?.id) {
+      GameStore.update("cameraTarget", playerEntity);
+    }
   }
 }

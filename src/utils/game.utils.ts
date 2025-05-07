@@ -1,9 +1,12 @@
-import { GameStore } from '@root/stores/game.store';
-import { PlayerAnimations } from '@root/types/game.types';
-import * as THREE from 'three';
+import { GameStore } from "@root/stores/game.store";
+import { PlayerAnimations } from "@root/types/game.types";
+import * as THREE from "three";
 
 export class GameUtils {
-  public static createTerrain(points: Array<THREE.Vector2>, position: THREE.Vector3) {
+  public static createTerrain(
+    points: Array<THREE.Vector2>,
+    position: THREE.Vector3,
+  ) {
     const terrainShape = new THREE.Shape(points);
     const terrainGeometry = new THREE.ExtrudeGeometry(terrainShape, {
       steps: 2,
@@ -25,17 +28,25 @@ export class GameUtils {
 
   public static setupPlayerAnimations(
     mixer: THREE.AnimationMixer,
-    animations: THREE.AnimationClip[]
+    animations: THREE.AnimationClip[],
   ): PlayerAnimations {
     return {
-      idle: mixer.clipAction(animations.find((x) => x.name === 'idle')!),
-      run: mixer.clipAction(animations.find((x) => x.name === 'fast-run')!),
-      tpose: mixer.clipAction(animations.find((x) => x.name === 'tpose')!),
-      walk: mixer.clipAction(animations.find((x) => x.name === 'walk')!),
+      idle: mixer.clipAction(animations.find((x) => x.name === "idle")!),
+      run: mixer.clipAction(animations.find((x) => x.name === "fast-run")!),
+      tpose: mixer.clipAction(animations.find((x) => x.name === "tpose")!),
+      walk: mixer.clipAction(animations.find((x) => x.name === "walk")!),
+      /*
+      dash: mixer.clipAction(animations.find((x) => x.name === "dash")!),
+      swordAttack: mixer.clipAction(
+        animations.find((x) => x.name === "sword-attack")!,
+      ),
+      */
     };
   }
 
   public static getMainPlayerEntityId(): number | undefined {
-    return GameStore.getState().mappedPlayers[GameStore.getState().user?.id ?? ''];
+    return GameStore.getState().mappedPlayers[
+      GameStore.getState().user?.id ?? ""
+    ];
   }
 }

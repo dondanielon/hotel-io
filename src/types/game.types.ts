@@ -26,6 +26,8 @@ export interface PlayerAnimations {
   run: THREE.AnimationAction;
   tpose: THREE.AnimationAction;
   walk: THREE.AnimationAction;
+ // dash: THREE.AnimationAction;
+ // swordAttack: THREE.AnimationAction;
 }
 
 export interface Terrain {

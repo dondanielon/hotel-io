@@ -1,6 +1,8 @@
-import { User } from '@root/types/user.types';
-import { Store } from './store';
-import * as THREE from 'three';
+import { User } from "@root/types/user.types";
+import { Store } from "./store";
+import * as THREE from "three";
+import { ECSYThreeEntity } from "ecsy-three";
+
 export interface GameState {
   mappedPlayers: Record<string, number>;
   mouseLocation: THREE.Vector2;
@@ -8,6 +10,7 @@ export interface GameState {
   targetPosition: { x: number; y: number; z: number } | null;
   user: User | null;
   lastDashTime: number;
+  cameraTarget: ECSYThreeEntity | null;
 }
 
 export const GameStore = new Store<GameState>({
@@ -17,4 +20,5 @@ export const GameStore = new Store<GameState>({
   targetPosition: null,
   user: null,
   lastDashTime: 0,
+  cameraTarget: null,
 });
