@@ -16,6 +16,7 @@ import {
 import { LobbyState, Player } from "@root/types/game.types";
 import { GameUtils } from "@root/utils/game.utils";
 import { GameAnimationAction } from "@root/enums/game.enums";
+import { Constants } from "@root/constants";
 
 type Message = { event: WebSocketEvent; payload: any };
 
@@ -25,7 +26,7 @@ type Message = { event: WebSocketEvent; payload: any };
 export class SocketSystem extends ECSYThreeSystem {
   // Hardcoded for now
   private static readonly WS_URL = "ws://localhost:80";
-  private static readonly TERRAIN_POSITION = new THREE.Vector3(-5, 0, 5);
+  private static readonly TERRAIN_POSITION = new THREE.Vector3(0, 0, 0);
 
   private socket: WebSocket;
   private messageQueue: Message[];
@@ -68,12 +69,10 @@ export class SocketSystem extends ECSYThreeSystem {
   }
 
   private parseRawMessage(rawMessage: MessageEvent): Message {
-    console.info("rawmessage", rawMessage);
     const arrayBuffer = rawMessage.data as ArrayBuffer;
     const uint8Array = new Uint8Array(arrayBuffer);
     const event = uint8Array[0];
     const rawPayload = new TextDecoder().decode(uint8Array.slice(1));
-    console.log({ event, payload: new TextDecoder().decode(uint8Array.slice(1)) });
 
     // This is a band aid for this issue, I still need to implement a better way
     // of parsing the messages received by the server
@@ -134,10 +133,12 @@ export class SocketSystem extends ECSYThreeSystem {
 
         for (const [id, player] of Object.entries(players)) {
           this.gltfLoader.load("/models/basic_male.glb", (model) => {
+            // this.gltfLoader.load("/models/girl.glb", (model) => {
             model.scene.scale.set(1, 1, 1);
             model.scene.position.set(0, 0, 0);
             model.scene.castShadow = true;
-            this.createPlayerEntity({ scene, model, id, player });
+            this.createPlayerEntity({ scene, model, id, player, noAnimation: true });
+            // this.createPlayerEntity({ scene, model, id, player });
           });
         }
 
@@ -163,15 +164,13 @@ export class SocketSystem extends ECSYThreeSystem {
       .addObject3DComponent(config.model.scene)
       .addComponent(MovementComponent, {
         isMoving: false,
-        speed: 1,
-        targetPosition: null,
-        isDashing: false,
+        speed: Constants.PLAYER_SPEED,
         dashDirection: null,
         dashTimer: 0,
       })
       .addComponent(PlayerComponent, { username: config.player.username, id: config.id });
 
-    if (config.noAnimation === true) {
+    if (!config.noAnimation) {
       const animations = GameUtils.setupPlayerAnimations(mixer, config.model.animations);
       playerEntity.addComponent(PlayerAnimationComponent, {
         ...animations,
