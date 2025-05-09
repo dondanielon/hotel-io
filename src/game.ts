@@ -1,23 +1,18 @@
-import {
-  ECSYThreeEntity,
-  ECSYThreeWorld,
-  WebGLRendererComponent,
-  WebGLRendererSystem,
-} from 'ecsy-three';
-import * as THREE from 'three';
-import { Constants } from './constants';
-import { SocketSystem } from './systems/socket.system';
-import { TerrainComponent } from './components/terrain.component';
-import { PlayerInputSystem } from './systems/player-input.system';
-import { PlayerComponent } from './components/player.component';
-import { PlayerAnimationComponent } from './components/player-animation.component';
-import { MovementComponent } from './components/movement.component';
-import Stats from 'stats.js';
-import { MovementSystem } from './systems/movement.system';
-import { CameraSystem } from './systems/camera.system';
-import { CommandSystem } from './systems/command.system';
-import { AnimationSystem } from './systems/animation.system';
-import { MouseLocationSystem } from './systems/mouse-location.system';
+import { ECSYThreeEntity, ECSYThreeWorld, WebGLRendererComponent, WebGLRendererSystem } from "ecsy-three";
+import * as THREE from "three";
+import { Constants } from "./constants";
+import { SocketSystem } from "./systems/socket.system";
+import { TerrainComponent } from "./components/terrain.component";
+import { PlayerInputSystem } from "./systems/player-input.system";
+import { PlayerComponent } from "./components/player.component";
+import { PlayerAnimationComponent } from "./components/player-animation.component";
+import { MovementComponent } from "./components/movement.component";
+import Stats from "stats.js";
+import { MovementSystem } from "./systems/movement.system";
+import { CameraSystem } from "./systems/camera.system";
+import { CommandSystem } from "./systems/command.system";
+import { AnimationSystem } from "./systems/animation.system";
+import { MouseLocationSystem } from "./systems/mouse-location.system";
 
 export class Game {
   private world: ECSYThreeWorld;
@@ -47,7 +42,7 @@ export class Game {
       Constants.CAMERA_FOV,
       Constants.CAMERA_ASPECT_RATIO,
       Constants.CAMERA_NEAR_VIEW,
-      Constants.CAMERA_FAR_VIEW
+      Constants.CAMERA_FAR_VIEW,
     );
 
     camera.position.set(0, 10, 10);
@@ -56,7 +51,7 @@ export class Game {
     const stats = new Stats();
     stats.showPanel(0);
 
-    document.body.appendChild(stats.dom);
+    //   document.body.appendChild(stats.dom);
     document.body.appendChild(renderer.domElement);
 
     renderer.setAnimationLoop(() => {
@@ -92,6 +87,6 @@ export class Game {
   }
 
   setupLobby() {
-    console.log('lobby initialized');
+    console.log("lobby initialized");
   }
 }
