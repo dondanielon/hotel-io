@@ -1,4 +1,5 @@
-import { defineConfig, loadEnv } from 'vite';
+import { warn } from "console";
+import { defineConfig, loadEnv } from "vite";
 
 export default defineConfig(({ mode }) => {
   // Load env file based on `mode` in the current working directory.
@@ -6,24 +7,24 @@ export default defineConfig(({ mode }) => {
   const env = loadEnv(mode, process.cwd());
 
   return {
-    assetsInclude: ['**/*.html'],
+    assetsInclude: ["**/*.html"],
     server: {
       port: 4200,
     },
     build: {
-      target: 'esnext',
+      target: "esnext",
     },
     resolve: {
       alias: {
-        '@root': '/src',
-        '@components': '/src/components',
-        '@systems': '/src/systems',
-        '@libs': '/src/libs',
+        "@root": "/src",
+        "@components": "/src/components",
+        "@systems": "/src/systems",
+        "@libs": "/src/libs",
       },
     },
     // Expose env variables to the client
     define: {
-      'process.env': env,
+      "process.env": env,
     },
   };
 });

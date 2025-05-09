@@ -68,10 +68,22 @@ export class SocketSystem extends ECSYThreeSystem {
   }
 
   private parseRawMessage(rawMessage: MessageEvent): Message {
+    console.info("rawmessage", rawMessage);
     const arrayBuffer = rawMessage.data as ArrayBuffer;
     const uint8Array = new Uint8Array(arrayBuffer);
     const event = uint8Array[0];
-    const payload = JSON.parse(new TextDecoder().decode(uint8Array.slice(1)));
+    const rawPayload = new TextDecoder().decode(uint8Array.slice(1));
+    console.log({ event, payload: new TextDecoder().decode(uint8Array.slice(1)) });
+
+    // This is a band aid for this issue, I still need to implement a better way
+    // of parsing the messages received by the server
+    let payload: any;
+    try {
+      payload = JSON.parse(rawPayload);
+    } catch {
+      console.info("Invalid JSON to parse, using fallback");
+      payload = rawPayload;
+    }
 
     return { event, payload };
   }
@@ -120,20 +132,12 @@ export class SocketSystem extends ECSYThreeSystem {
 
         this.world.createEntity().addObject3DComponent(terrainMesh, sceneEntity).addComponent(TerrainComponent);
 
-        this.gltfLoader.load("/models/basic_male.glb", (model) => {
-          model.scene.scale.set(1, 1, 1);
-          model.scene.position.set(0, 0, 0);
-          model.scene.castShadow = true;
-
-          scene.add(model.scene);
-        });
-
         for (const [id, player] of Object.entries(players)) {
-          this.gltfLoader.load("/models/girl.glb", (model) => {
+          this.gltfLoader.load("/models/basic_male.glb", (model) => {
             model.scene.scale.set(1, 1, 1);
             model.scene.position.set(0, 0, 0);
             model.scene.castShadow = true;
-            this.createPlayerEntity(scene, model, id, player);
+            this.createPlayerEntity({ scene, model, id, player });
           });
         }
 
@@ -145,13 +149,18 @@ export class SocketSystem extends ECSYThreeSystem {
     }
   }
 
-  private createPlayerEntity(scene: THREE.Scene, model: any, id: string, player: Player): void {
-    const mixer = new THREE.AnimationMixer(model.scene);
-    const animations = GameUtils.setupPlayerAnimations(mixer, model.animations);
+  private createPlayerEntity(config: {
+    id: string;
+    scene: THREE.Scene;
+    model: any;
+    player: Player;
+    noAnimation?: boolean;
+  }): void {
+    const mixer = new THREE.AnimationMixer(config.model.scene);
 
     const playerEntity = this.world
       .createEntity()
-      .addObject3DComponent(model.scene)
+      .addObject3DComponent(config.model.scene)
       .addComponent(MovementComponent, {
         isMoving: false,
         speed: 1,
@@ -160,16 +169,25 @@ export class SocketSystem extends ECSYThreeSystem {
         dashDirection: null,
         dashTimer: 0,
       })
-      .addComponent(PlayerComponent, { username: player.username, id })
-      .addComponent(PlayerAnimationComponent, { mixer, currentAction: GameAnimationAction.Idle, ...animations });
+      .addComponent(PlayerComponent, { username: config.player.username, id: config.id });
 
-    scene.add(model.scene);
-    animations.idle.play();
+    if (config.noAnimation === true) {
+      const animations = GameUtils.setupPlayerAnimations(mixer, config.model.animations);
+      playerEntity.addComponent(PlayerAnimationComponent, {
+        ...animations,
+        mixer,
+        currentAction: GameAnimationAction.Idle,
+      });
+
+      animations.idle.play();
+    }
+
+    config.scene.add(config.model.scene);
 
     const mappedPlayers = GameStore.getState().mappedPlayers;
-    GameStore.update("mappedPlayers", { ...mappedPlayers, [id]: playerEntity.id });
+    GameStore.update("mappedPlayers", { ...mappedPlayers, [config.id]: playerEntity.id });
 
-    if (id === GameStore.getState().user?.id) {
+    if (config.id === GameStore.getState().user?.id) {
       GameStore.update("cameraTarget", playerEntity);
     }
   }
