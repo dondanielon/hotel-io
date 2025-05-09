@@ -34,6 +34,6 @@ export class CameraSystem extends ECSYThreeSystem {
       (mesh ? mesh.position.z : 0) + Constants.CAMERA_SYSTEM_Z_POSITION_ADD,
     );
 
-    camera.lookAt(mesh ? mesh.position : new THREE.Vector3(0, 0, 0));
+    camera.lookAt(mesh ? mesh.position.clone().setY(mesh.position.y + 0.75) : new THREE.Vector3(0, 0, 0));
   }
 }
