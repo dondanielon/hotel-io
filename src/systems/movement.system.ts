@@ -22,11 +22,6 @@ export class MovementSystem extends ECSYThreeSystem {
       const playerMesh = entity.getObject3D<THREE.Mesh>()!;
       const movementComponent = entity.getMutableComponent(MovementComponent)!;
 
-      /**
-       * The order of how we handle the types of movement is important
-       * ex. If player dashes the isMoving field in the movement component
-       * is set to false which prevents handleNormalMovement() to "run"
-       */
       this.handleDash(movementComponent, playerMesh, delta);
       this.handleNormalMovement(movementComponent, playerMesh, delta);
     }
@@ -44,7 +39,12 @@ export class MovementSystem extends ECSYThreeSystem {
     } else {
       const step = component.dashDirection.clone().multiplyScalar(Constants.PLAYER_DASH_SPEED * delta);
       mesh.position.add(step);
-      mesh.rotation.y = Math.atan2(component.dashDirection.x, component.dashDirection.y);
+      mesh.rotation.y = this.calculateRotationY(
+        mesh.rotation.y,
+        component.dashDirection,
+        Constants.PLAYER_DASH_ROTATION_SPEED,
+        delta,
+      );
     }
   }
 
@@ -63,10 +63,15 @@ export class MovementSystem extends ECSYThreeSystem {
       component.targetPosition = null;
     }
 
-    mesh.rotation.y = this.calculateRotationY(mesh.rotation.y, direction, delta);
+    mesh.rotation.y = this.calculateRotationY(mesh.rotation.y, direction, Constants.PLAYER_ROTATION_SPEED, delta);
   }
 
-  private calculateRotationY(currentRotationY: number, direction: Vector3, delta: number): number {
+  private calculateRotationY(
+    currentRotationY: number,
+    direction: Vector3,
+    rotationSpeed: number,
+    delta: number,
+  ): number {
     const targetRotation = Math.atan2(direction.x, direction.z);
     let rotationDifference = targetRotation - currentRotationY;
 
@@ -74,7 +79,7 @@ export class MovementSystem extends ECSYThreeSystem {
     if (rotationDifference > Math.PI) rotationDifference -= Math.PI * 2;
     if (rotationDifference < -Math.PI) rotationDifference += Math.PI * 2;
 
-    const smoothAngle = currentRotationY + rotationDifference * Constants.PLAYER_ROTATION_SPEED * delta;
+    const smoothAngle = currentRotationY + rotationDifference * rotationSpeed * delta;
 
     return THREE.MathUtils.euclideanModulo(smoothAngle + Math.PI, Math.PI * 2) - Math.PI;
   }

@@ -14,7 +14,7 @@ import { UserService } from "@root/services/user.service";
 export class PlayerInputSystem extends ECSYThreeSystem {
   private clickPointer: THREE.Mesh<THREE.CircleGeometry, THREE.MeshBasicMaterial> | null = null;
   private clickPointerTimer: number = 0;
-  private dashDelay = 0;
+  private dashDelay = 500;
   private raycaster = new THREE.Raycaster();
 
   static queries = {
@@ -73,14 +73,20 @@ export class PlayerInputSystem extends ECSYThreeSystem {
 
     const { camera, terrain, scene } = this.getSceneElements();
     const mouseLocation = GameStore.getState().mouseLocation;
+
     const intersectionPoint = this.getTerrainIntersection(camera, terrain, mouseLocation);
     if (!intersectionPoint) return; // Clicked outside of the terrain
 
-    GameStore.update("targetPosition", intersectionPoint);
+    const playerMesh = playerEntity.getObject3D<THREE.Mesh>()!;
+    if (playerMesh.position.distanceTo(intersectionPoint) < 0.45) return;
 
+    GameStore.update("targetPosition", intersectionPoint);
     const movementComponent = playerEntity.getMutableComponent(MovementComponent)!;
     movementComponent.targetPosition = intersectionPoint;
     movementComponent.isMoving = true;
+    movementComponent.isDashing = false;
+    movementComponent.dashDirection = null;
+    movementComponent.dashTimer = 0;
 
     if (this.clickPointer) {
       scene.remove(this.clickPointer);
@@ -105,31 +111,36 @@ export class PlayerInputSystem extends ECSYThreeSystem {
           return;
         }
 
-        const { camera, terrain } = this.getSceneElements();
+        const { camera, terrain, scene } = this.getSceneElements();
         const mouseLocation = GameStore.getState().mouseLocation;
-        this.raycaster.setFromCamera(mouseLocation, camera);
-        const intersects = this.raycaster.intersectObject(terrain);
+        const intersectionPoint = this.getTerrainIntersection(camera, terrain, mouseLocation);
 
-        if (intersects.length > 0) {
-          const playerMesh = playerEntity.getObject3D<THREE.Mesh>()!;
-          const movementComponent = playerEntity.getMutableComponent(MovementComponent)!;
+        if (!intersectionPoint) return;
 
-          // Calculate dash direction from player to mouse position
-          const mousePoint = intersects[0].point;
-          mousePoint.y = 0;
-          const dashDirection = new THREE.Vector3().subVectors(mousePoint, playerMesh.position).normalize();
+        const playerMesh = playerEntity.getObject3D<THREE.Mesh>()!;
+        const movementComponent = playerEntity.getMutableComponent(MovementComponent)!;
 
-          // Set up dash properties
-          movementComponent.isDashing = true;
-          movementComponent.dashDirection = dashDirection;
-          movementComponent.dashTimer = Constants.PLAYER_DASH_DURATION;
+        // Calculate dash direction from player to mouse position
+        const dashDirection = new THREE.Vector3().subVectors(intersectionPoint, playerMesh.position).normalize();
 
-          // Clear target position and stop normal movement
-          movementComponent.isMoving = false;
-          movementComponent.targetPosition = null;
-          GameStore.update("targetPosition", null);
-          GameStore.update("lastDashTime", Date.now());
+        // Set up dash properties
+        movementComponent.isDashing = true;
+        movementComponent.dashDirection = dashDirection;
+        movementComponent.dashTimer = Constants.PLAYER_DASH_DURATION;
+
+        // Clear target position and stop normal movement
+        movementComponent.isMoving = false;
+        movementComponent.targetPosition = null;
+        GameStore.update("targetPosition", null);
+        GameStore.update("lastDashTime", Date.now());
+
+        if (this.clickPointer) {
+          scene.remove(this.clickPointer);
+          this.clickPointer = null;
+          this.clickPointerTimer = 0;
         }
+
+        this.addClickPointer(scene, intersectionPoint);
         break;
       }
     }
