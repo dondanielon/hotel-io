@@ -117,6 +117,9 @@ export class SocketSystem extends ECSYThreeSystem {
     switch (event) {
       case WebSocketEvent.Authentication: {
         GameStore.update("user", payload);
+
+        // For development purposes I'm joining to a public game
+        // after authentication
         this.sendMessage(WebSocketEvent.JoinGame, "public-game");
         break;
       }
@@ -142,6 +145,10 @@ export class SocketSystem extends ECSYThreeSystem {
           });
         }
 
+        break;
+      }
+
+      case WebSocketEvent.PlayerJoin: {
         break;
       }
 
