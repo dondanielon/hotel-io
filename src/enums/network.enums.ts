@@ -1,7 +1,6 @@
 export enum WebSocketEvent {
   // Authentication and Connection Events
-  Authentication = 1,
-  ConnectionStatus = 2,
+  Authentication = 0,
 
   // Game Management Events
   CreateGame = 10,

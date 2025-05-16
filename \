@@ -42,17 +42,19 @@ export class SocketSystem extends ECSYThreeSystem {
   constructor(world: ECSYThreeWorld) {
     super(world);
     this.messageQueue = [];
-    this.gltfLoader = new GLTFLoader();
-
     this.socket = new WebSocket(SocketSystem.WS_URL);
     this.socket.binaryType = "arraybuffer";
+    this.gltfLoader = new GLTFLoader();
+    this.setupWebSocket();
+  }
+
+  private setupWebSocket(): void {
     this.socket.onclose = () => console.log("Disconnected from server");
     this.socket.onerror = (error) => console.error("WebSocket error:", error);
     this.socket.onopen = () => GameStore.subscribe(this.handleGameStateChange.bind(this));
 
     this.socket.onmessage = (rawMessage) => {
       const message = this.parseRawMessage(rawMessage);
-      console.log("message from server:", message);
       this.messageQueue.push(message);
     };
   }
@@ -67,6 +69,8 @@ export class SocketSystem extends ECSYThreeSystem {
   }
 
   private parseRawMessage(rawMessage: MessageEvent): Message {
+    console.log("message from serve:");
+    console.log(rawMessage.data);
     const arrayBuffer = rawMessage.data as ArrayBuffer;
     const uint8Array = new Uint8Array(arrayBuffer);
     const event = uint8Array[0];
@@ -86,8 +90,6 @@ export class SocketSystem extends ECSYThreeSystem {
   }
 
   private sendMessage(event: WebSocketEvent, payload: string): void {
-    console.log("message to server:");
-    console.log({ event, payload });
     if (this.socket.readyState !== WebSocket.OPEN) {
       console.error("Error sending message: Connection with server dropped");
       return;
@@ -98,6 +100,8 @@ export class SocketSystem extends ECSYThreeSystem {
     message[0] = event;
     message.set(payloadBuffer, 1);
 
+    console.log("message to server:");
+    console.log(message);
     this.socket.send(message);
   }
 
@@ -120,7 +124,7 @@ export class SocketSystem extends ECSYThreeSystem {
 
         // For development purposes I'm joining to a public game
         // after authentication
-        this.sendMessage(WebSocketEvent.JoinGame, JSON.stringify({ gameId: "public-game" }));
+        this.sendMessage(WebSocketEvent.JoinGame, "public-game");
         break;
       }
 
