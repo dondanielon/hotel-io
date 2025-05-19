@@ -32,14 +32,24 @@ export class PlayerInputSystem extends ECSYThreeSystem {
     window.addEventListener("touchmove", this.onTouchMove.bind(this));
     window.addEventListener("touchend", this.onTouchEnd.bind(this));
 
-    const loginbtn = document.createElement("button");
-    loginbtn.addEventListener("click", () => UserService.login("admin@tyenet.com", "Secure1"));
-    loginbtn.innerText = "Login dev";
-    loginbtn.style.width = "200px";
-    loginbtn.style.height = "40px";
-    loginbtn.style.zIndex = "20";
-    loginbtn.style.position = "absolute";
-    document.body.appendChild(loginbtn);
+    const loginbtnA = document.createElement("button");
+    loginbtnA.addEventListener("click", () => UserService.login("admin@tyenet.com", "Secure1"));
+    loginbtnA.innerText = "Login Don Dan";
+    loginbtnA.style.width = "200px";
+    loginbtnA.style.height = "40px";
+    loginbtnA.style.zIndex = "20";
+    loginbtnA.style.position = "absolute";
+    document.body.appendChild(loginbtnA);
+
+    const loginbtnB = document.createElement("button");
+    loginbtnB.addEventListener("click", () => UserService.login("admin1@tyenet.com", "Secure1"));
+    loginbtnB.innerText = "Login becerdo";
+    loginbtnB.style.width = "200px";
+    loginbtnB.style.height = "40px";
+    loginbtnB.style.zIndex = "20";
+    loginbtnB.style.position = "absolute";
+    loginbtnB.style.left = "200px";
+    document.body.appendChild(loginbtnB);
   }
 
   execute(delta: number, _time: number): void {
@@ -82,8 +92,8 @@ export class PlayerInputSystem extends ECSYThreeSystem {
 
     GameStore.update("targetPosition", intersectionPoint);
     const movementComponent = playerEntity.getMutableComponent(MovementComponent)!;
-    movementComponent.targetPosition = intersectionPoint;
-    movementComponent.isMoving = true;
+    // movementComponent.targetPosition = intersectionPoint;
+    // movementComponent.isMoving = true;
     movementComponent.isDashing = false;
     movementComponent.dashDirection = null;
     movementComponent.dashTimer = 0;
