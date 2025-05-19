@@ -17,6 +17,7 @@ import { LobbyState, Player } from "@root/types/game.types";
 import { GameUtils } from "@root/utils/game.utils";
 import { GameAnimationAction } from "@root/enums/game.enums";
 import { Constants } from "@root/constants";
+import { NetworkGameState } from "@root/types/network.types";
 
 type Message = { event: WebSocketEvent; payload: any };
 
@@ -37,6 +38,9 @@ export class SocketSystem extends ECSYThreeSystem {
       components: [TerrainComponent, Object3DComponent, MeshTagComponent],
     },
     renderer: { components: [WebGLRendererComponent] },
+    players: {
+      components: [PlayerComponent, MovementComponent],
+    },
   };
 
   constructor(world: ECSYThreeWorld) {
@@ -52,7 +56,7 @@ export class SocketSystem extends ECSYThreeSystem {
 
     this.socket.onmessage = (rawMessage) => {
       const message = this.parseRawMessage(rawMessage);
-      console.log("message from server:", message);
+      // console.log("message from server:", message);
       this.messageQueue.push(message);
     };
   }
@@ -86,8 +90,8 @@ export class SocketSystem extends ECSYThreeSystem {
   }
 
   private sendMessage(event: WebSocketEvent, payload: string): void {
-    console.log("message to server:");
-    console.log({ event, payload });
+    // console.log("message to server:");
+    // console.log({ event, payload });
     if (this.socket.readyState !== WebSocket.OPEN) {
       console.error("Error sending message: Connection with server dropped");
       return;
@@ -108,7 +112,7 @@ export class SocketSystem extends ECSYThreeSystem {
     }
 
     if (state.targetPosition) {
-      this.sendMessage(WebSocketEvent.PlayerMove, JSON.stringify(state.targetPosition));
+      this.sendMessage(WebSocketEvent.PlayerMove, JSON.stringify({ targetPosition: state.targetPosition }));
       GameStore.update("targetPosition", null);
     }
   }
@@ -138,7 +142,7 @@ export class SocketSystem extends ECSYThreeSystem {
           this.gltfLoader.load("/models/basic_male.glb", (model) => {
             // this.gltfLoader.load("/models/girl.glb", (model) => {
             model.scene.scale.set(1, 1, 1);
-            model.scene.position.set(0, 0, 0);
+            model.scene.position.set(player.position.x, player.position.y, player.position.z);
             model.scene.castShadow = true;
             this.createPlayerEntity({ scene, model, id, player, noAnimation: true });
             // this.createPlayerEntity({ scene, model, id, player });
@@ -149,6 +153,30 @@ export class SocketSystem extends ECSYThreeSystem {
       }
 
       case WebSocketEvent.PlayerJoin: {
+        break;
+      }
+
+      case WebSocketEvent.GameStateUpdate: {
+        const { players: netPlayers } = payload as NetworkGameState;
+
+        for (const [id, netPlayer] of Object.entries(netPlayers)) {
+          const mappedEntityId = GameStore.getState().mappedPlayers[id];
+          const playerEntity = this.queries.players.results.find((x) => x.id === mappedEntityId);
+
+          if (playerEntity) {
+            const movementComponent = playerEntity.getMutableComponent(MovementComponent)!;
+            const target = netPlayer.targetPosition;
+
+            console.log({ movementComponent, target });
+
+            if (target) {
+              console.log(target);
+              movementComponent.targetPosition = new THREE.Vector3(target.x, target.y, target.z);
+              movementComponent.isMoving = true;
+            }
+          }
+        }
+
         break;
       }
 
@@ -193,6 +221,7 @@ export class SocketSystem extends ECSYThreeSystem {
     const mappedPlayers = GameStore.getState().mappedPlayers;
     GameStore.update("mappedPlayers", { ...mappedPlayers, [config.id]: playerEntity.id });
 
+    // Set the camera target to client player
     if (config.id === GameStore.getState().user?.id) {
       GameStore.update("cameraTarget", playerEntity);
     }
