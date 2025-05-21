@@ -31,5 +31,4 @@ dist-ssr
 .env.test.local
 .env.production.local
 
-public/textures
-public/models
+
