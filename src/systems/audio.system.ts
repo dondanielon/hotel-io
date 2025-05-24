@@ -1,4 +1,4 @@
-import { ECSYThreeSystem } from 'ecsy-three';
+import { ECSYThreeSystem } from "ecsy-three";
 
 export class AudioSystem extends ECSYThreeSystem {
   static queries = {};

@@ -132,6 +132,7 @@ export class PlayerInputSystem extends ECSYThreeSystem {
 
         // Calculate dash direction from player to mouse position
         const dashDirection = new THREE.Vector3().subVectors(intersectionPoint, playerMesh.position).normalize();
+        GameStore.update("dashTargetPosition", dashDirection);
 
         // Set up dash properties
         movementComponent.isDashing = true;

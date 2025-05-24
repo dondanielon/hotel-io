@@ -7,7 +7,8 @@ export interface GameState {
   mappedPlayers: Record<string, number>;
   mouseLocation: THREE.Vector2;
   requestGameList: boolean;
-  targetPosition: { x: number; y: number; z: number } | null;
+  targetPosition: THREE.Vector3 | null;
+  dashTargetPosition: THREE.Vector3 | null;
   user: User | null;
   lastDashTime: number;
   cameraTarget: ECSYThreeEntity | null;
@@ -18,6 +19,7 @@ export const GameStore = new Store<GameState>({
   mouseLocation: new THREE.Vector2(-1, 1), // top left corner
   requestGameList: false,
   targetPosition: null,
+  dashTargetPosition: null,
   user: null,
   lastDashTime: 0,
   cameraTarget: null,

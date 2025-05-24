@@ -107,13 +107,26 @@ export class SocketSystem extends ECSYThreeSystem {
 
   private handleGameStateChange(state: GameState): void {
     if (state.requestGameList) {
-      this.sendMessage(WebSocketEvent.GamesList, "");
+      this.sendMessage(WebSocketEvent.GamesList, JSON.stringify({}));
       GameStore.update("requestGameList", false);
     }
 
     if (state.targetPosition) {
-      this.sendMessage(WebSocketEvent.PlayerMove, JSON.stringify({ targetPosition: state.targetPosition }));
+      this.sendMessage(
+        WebSocketEvent.PlayerMove,
+        JSON.stringify({ targetPosition: state.targetPosition, dashTargetPosition: null }),
+      );
+
       GameStore.update("targetPosition", null);
+    }
+
+    if (state.dashTargetPosition) {
+      this.sendMessage(
+        WebSocketEvent.PlayerMove,
+        JSON.stringify({ targetPosition: null, dashTargetPosition: state.dashTargetPosition }),
+      );
+
+      GameStore.update("dashTargetPosition", null);
     }
   }
 

@@ -1,4 +1,4 @@
-import { ECSYThreeSystem } from 'ecsy-three';
+import { ECSYThreeSystem } from "ecsy-three";
 
 export class CommandSystem extends ECSYThreeSystem {
   static queries = {};
