@@ -16,7 +16,7 @@ import { MouseLocationSystem } from "./systems/mouse-location.system";
 
 export class Game {
   private world: ECSYThreeWorld;
-  private rendererEntity: ECSYThreeEntity;
+  // private rendererEntity: ECSYThreeEntity;
 
   constructor() {
     this.world = new ECSYThreeWorld();
