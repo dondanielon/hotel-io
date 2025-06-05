@@ -21,10 +21,19 @@ export class MovementSystem extends ECSYThreeSystem {
     for (const entity of entities) {
       const playerMesh = entity.getObject3D<THREE.Mesh>()!;
       const movementComponent = entity.getMutableComponent(MovementComponent)!;
+      // const playerComponent = entity.getComponent(PlayerComponent)!;
 
+      // Only apply movement to remote players (local player is handled by prediction)
+      // if (!this.isLocalPlayer(playerComponent.id)) {
       this.handleDash(movementComponent, playerMesh, delta);
       this.handleNormalMovement(movementComponent, playerMesh, delta);
+      // }
     }
+  }
+
+  private isLocalPlayer(playerId: string): boolean {
+    // This should be set by the socket system
+    return (window as any).localPlayerId === playerId;
   }
 
   private handleDash(component: MovementComponent, mesh: THREE.Mesh, delta: number): void {
