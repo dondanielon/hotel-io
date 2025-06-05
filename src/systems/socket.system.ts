@@ -106,11 +106,6 @@ export class SocketSystem extends ECSYThreeSystem {
   }
 
   private handleGameStateChange(state: GameState): void {
-    if (state.requestGameList) {
-      this.sendMessage(WebSocketEvent.GamesList, JSON.stringify({}));
-      GameStore.update("requestGameList", false);
-    }
-
     if (state.targetPosition) {
       this.sendMessage(
         WebSocketEvent.PlayerMove,
@@ -186,6 +181,9 @@ export class SocketSystem extends ECSYThreeSystem {
               console.log(target);
               movementComponent.targetPosition = new THREE.Vector3(target.x, target.y, target.z);
               movementComponent.isMoving = true;
+            } else {
+              movementComponent.targetPosition = null;
+              movementComponent.isMoving = false;
             }
           }
         }
