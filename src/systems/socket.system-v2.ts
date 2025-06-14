@@ -85,7 +85,7 @@ type Message = { event: WebSocketEvent; payload: any };
  */
 export class SocketSystemV2 extends ECSYThreeSystem {
   // Hardcoded for now - should be configurable
-  private static readonly WS_URL = "ws://localhost:8080";
+  private static readonly WS_URL = "ws://localhost:8080/ws";
   private static readonly TERRAIN_POSITION = new THREE.Vector3(0, 0, 0);
 
   // Prediction settings
