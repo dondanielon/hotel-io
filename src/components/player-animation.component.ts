@@ -1,4 +1,4 @@
-import { GameAnimationAction } from "@root/enums/game.enums";
+import { GameAnimationAction } from "@root/shared/enums/game.enums";
 import { Component, RefPropType, Types } from "ecsy";
 import { AnimationAction, AnimationMixer } from "three";
 

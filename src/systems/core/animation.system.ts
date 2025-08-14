@@ -1,8 +1,8 @@
-import { MovementComponent } from '@root/components/movement.component';
-import { PlayerAnimationComponent } from '@root/components/player-animation.component';
-import { PlayerComponent } from '@root/components/player.component';
-import { Constants } from '@root/constants';
-import { ECSYThreeSystem } from 'ecsy-three';
+import { MovementComponent } from "@root/components/movement.component";
+import { PlayerAnimationComponent } from "@root/components/player-animation.component";
+import { PlayerComponent } from "@root/components/player.component";
+import { PlayerConstants } from "@shared/constants/player.constants";
+import { ECSYThreeSystem } from "ecsy-three";
 
 /**
  * System responsible for handling player animations
@@ -23,8 +23,8 @@ export class AnimationSystem extends ECSYThreeSystem {
       animationComponent.mixer.update(delta);
 
       if (movementComponent.isDashing && animationComponent.walk.isRunning()) {
-        animationComponent.walk.fadeOut(Constants.PLAYER_ANIMATION_FADE_DURATION);
-        animationComponent.idle.reset().fadeIn(Constants.PLAYER_ANIMATION_FADE_DURATION).play();
+        animationComponent.walk.fadeOut(PlayerConstants.ANIMATION_FADE_DURATION);
+        animationComponent.idle.reset().fadeIn(PlayerConstants.ANIMATION_FADE_DURATION).play();
       }
 
       if (!movementComponent.targetPosition) return;
@@ -33,13 +33,13 @@ export class AnimationSystem extends ECSYThreeSystem {
 
       if (playerMesh.position.distanceTo(movementComponent.targetPosition) > distance) {
         if (!animationComponent.walk.isRunning()) {
-          animationComponent.idle.fadeOut(Constants.PLAYER_ANIMATION_FADE_DURATION);
-          animationComponent.walk.reset().fadeIn(Constants.PLAYER_ANIMATION_FADE_DURATION).play();
+          animationComponent.idle.fadeOut(PlayerConstants.ANIMATION_FADE_DURATION);
+          animationComponent.walk.reset().fadeIn(PlayerConstants.ANIMATION_FADE_DURATION).play();
         }
       } else {
         if (animationComponent.walk.isRunning()) {
-          animationComponent.walk.fadeOut(Constants.PLAYER_ANIMATION_FADE_DURATION);
-          animationComponent.idle.reset().fadeIn(Constants.PLAYER_ANIMATION_FADE_DURATION).play();
+          animationComponent.walk.fadeOut(PlayerConstants.ANIMATION_FADE_DURATION);
+          animationComponent.idle.reset().fadeIn(PlayerConstants.ANIMATION_FADE_DURATION).play();
         }
       }
     }

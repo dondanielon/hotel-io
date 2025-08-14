@@ -1,4 +1,4 @@
-import { User } from "@root/types/user.types";
+import { User } from "@root/shared/types/user.types";
 import { Store } from "./store";
 import * as THREE from "three";
 import { ECSYThreeEntity } from "ecsy-three";
@@ -12,6 +12,7 @@ export interface GameState {
   user: User | null;
   lastDashTime: number;
   cameraTarget: ECSYThreeEntity | null;
+  playerEntity: ECSYThreeEntity | null;
 }
 
 export const GameStore = new Store<GameState>({
@@ -23,4 +24,5 @@ export const GameStore = new Store<GameState>({
   user: null,
   lastDashTime: 0,
   cameraTarget: null,
+  playerEntity: null,
 });

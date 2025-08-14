@@ -3,7 +3,7 @@ import { MovementComponent } from "@root/components/movement.component";
 import { PlayerComponent } from "@root/components/player.component";
 import { ECSYThreeSystem } from "ecsy-three";
 import { Vector3 } from "three";
-import { Constants } from "@root/constants";
+import { PlayerConstants } from "@shared/constants/player.constants";
 
 /**
  * System responsible for handling player movement
@@ -21,19 +21,10 @@ export class MovementSystem extends ECSYThreeSystem {
     for (const entity of entities) {
       const playerMesh = entity.getObject3D<THREE.Mesh>()!;
       const movementComponent = entity.getMutableComponent(MovementComponent)!;
-      // const playerComponent = entity.getComponent(PlayerComponent)!;
 
-      // Only apply movement to remote players (local player is handled by prediction)
-      // if (!this.isLocalPlayer(playerComponent.id)) {
       this.handleDash(movementComponent, playerMesh, delta);
       this.handleNormalMovement(movementComponent, playerMesh, delta);
-      // }
     }
-  }
-
-  private isLocalPlayer(playerId: string): boolean {
-    // This should be set by the socket system
-    return (window as any).localPlayerId === playerId;
   }
 
   private handleDash(component: MovementComponent, mesh: THREE.Mesh, delta: number): void {
@@ -46,12 +37,12 @@ export class MovementSystem extends ECSYThreeSystem {
       component.dashDirection = null;
       component.dashTimer = 0;
     } else {
-      const step = component.dashDirection.clone().multiplyScalar(Constants.PLAYER_DASH_SPEED * delta);
+      const step = component.dashDirection.clone().multiplyScalar(PlayerConstants.DASH_SPEED * delta);
       mesh.position.add(step);
       mesh.rotation.y = this.calculateRotationY(
         mesh.rotation.y,
         component.dashDirection,
-        Constants.PLAYER_DASH_ROTATION_SPEED,
+        PlayerConstants.DASH_ROTATION_SPEED,
         delta,
       );
     }
@@ -72,7 +63,7 @@ export class MovementSystem extends ECSYThreeSystem {
       component.targetPosition = null;
     }
 
-    mesh.rotation.y = this.calculateRotationY(mesh.rotation.y, direction, Constants.PLAYER_ROTATION_SPEED, delta);
+    mesh.rotation.y = this.calculateRotationY(mesh.rotation.y, direction, PlayerConstants.ROTATION_SPEED, delta);
   }
 
   private calculateRotationY(

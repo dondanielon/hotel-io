@@ -1,12 +1,11 @@
 import * as THREE from "three";
 import { ECSYThreeSystem, MeshTagComponent, Object3DComponent, WebGLRendererComponent } from "ecsy-three";
-import { GameStore } from "@root/stores/game.store";
+import { GameStore } from "@root/shared/stores/game.store";
 import { TerrainComponent } from "@root/components/terrain.component";
 import { PlayerComponent } from "@root/components/player.component";
 import { MovementComponent } from "@root/components/movement.component";
-import { Constants } from "@root/constants";
-import { GameUtils } from "@root/utils/game.utils";
-import { UserService } from "@root/services/user.service";
+import { InputConstants } from "@shared/constants/input.constants";
+import { PlayerConstants } from "@root/shared/constants/player.constants";
 
 /**
  * System responsible for handling player input and movement
@@ -31,25 +30,6 @@ export class PlayerInputSystem extends ECSYThreeSystem {
     window.addEventListener("touchstart", this.onTouchStart.bind(this));
     window.addEventListener("touchmove", this.onTouchMove.bind(this));
     window.addEventListener("touchend", this.onTouchEnd.bind(this));
-
-    const loginbtnA = document.createElement("button");
-    loginbtnA.addEventListener("click", () => UserService.login("admin@tyenet.com", "Secure1"));
-    loginbtnA.innerText = "Login Don Dan";
-    loginbtnA.style.width = "200px";
-    loginbtnA.style.height = "40px";
-    loginbtnA.style.zIndex = "20";
-    loginbtnA.style.position = "absolute";
-    document.body.appendChild(loginbtnA);
-
-    const loginbtnB = document.createElement("button");
-    loginbtnB.addEventListener("click", () => UserService.login("admin1@tyenet.com", "Secure1"));
-    loginbtnB.innerText = "Login becerdo";
-    loginbtnB.style.width = "200px";
-    loginbtnB.style.height = "40px";
-    loginbtnB.style.zIndex = "20";
-    loginbtnB.style.position = "absolute";
-    loginbtnB.style.left = "200px";
-    document.body.appendChild(loginbtnB);
   }
 
   execute(delta: number, _time: number): void {
@@ -65,7 +45,7 @@ export class PlayerInputSystem extends ECSYThreeSystem {
       this.clickPointer = null;
       this.clickPointerTimer = 0;
     } else {
-      const opacity = Math.max(0, this.clickPointerTimer / Constants.POINTER_DURATION);
+      const opacity = Math.max(0, this.clickPointerTimer / InputConstants.POINTER_DURATION);
       this.clickPointer.material.opacity = opacity;
     }
   }
@@ -73,9 +53,7 @@ export class PlayerInputSystem extends ECSYThreeSystem {
   private onRightClick(e: MouseEvent): void {
     e.preventDefault();
 
-    const playerEntityId = GameUtils.getMainPlayerEntityId();
-    const playerEntity = this.queries.players.results.find((entity) => entity.id === playerEntityId);
-
+    const playerEntity = GameStore.getState().playerEntity;
     if (!playerEntity) {
       console.warn("Main player entity not found");
       return;
@@ -87,13 +65,12 @@ export class PlayerInputSystem extends ECSYThreeSystem {
     const intersectionPoint = this.getTerrainIntersection(camera, terrain, mouseLocation);
     if (!intersectionPoint) return; // Clicked outside of the terrain
 
-    const playerMesh = playerEntity.getObject3D<THREE.Mesh>()!;
-    if (playerMesh.position.distanceTo(intersectionPoint) < 0.45) return;
+    // const playerMesh = playerEntity.getObject3D<THREE.Mesh>()!;
+    // if (playerMesh.position.distanceTo(intersectionPoint) < 0.45) return;
 
-    GameStore.update("targetPosition", intersectionPoint);
     const movementComponent = playerEntity.getMutableComponent(MovementComponent)!;
-    // movementComponent.targetPosition = intersectionPoint;
-    // movementComponent.isMoving = true;
+    movementComponent.targetPosition = intersectionPoint;
+    movementComponent.isMoving = true;
     movementComponent.isDashing = false;
     movementComponent.dashDirection = null;
     movementComponent.dashTimer = 0;
@@ -113,9 +90,7 @@ export class PlayerInputSystem extends ECSYThreeSystem {
         const lastDashTime = GameStore.getState().lastDashTime;
         if (lastDashTime > Date.now() - this.dashDelay) return;
 
-        const playerEntityId = GameUtils.getMainPlayerEntityId();
-        const playerEntity = this.queries.players.results.find((entity) => entity.id === playerEntityId);
-
+        const playerEntity = GameStore.getState().playerEntity;
         if (!playerEntity) {
           console.warn("Main player entity not found");
           return;
@@ -132,17 +107,15 @@ export class PlayerInputSystem extends ECSYThreeSystem {
 
         // Calculate dash direction from player to mouse position
         const dashDirection = new THREE.Vector3().subVectors(intersectionPoint, playerMesh.position).normalize();
-        GameStore.update("dashTargetPosition", dashDirection);
 
         // Set up dash properties
         movementComponent.isDashing = true;
         movementComponent.dashDirection = dashDirection;
-        movementComponent.dashTimer = Constants.PLAYER_DASH_DURATION;
+        movementComponent.dashTimer = PlayerConstants.DASH_DURATION;
 
         // Clear target position and stop normal movement
         movementComponent.isMoving = false;
         movementComponent.targetPosition = null;
-        GameStore.update("targetPosition", null);
         GameStore.update("lastDashTime", Date.now());
 
         if (this.clickPointer) {
@@ -158,9 +131,7 @@ export class PlayerInputSystem extends ECSYThreeSystem {
   }
 
   private onTouchStart(event: TouchEvent): void {
-    const playerEntityId = GameUtils.getMainPlayerEntityId();
-    const playerEntity = this.queries.players.results.find((entity) => entity.id === playerEntityId);
-
+    const playerEntity = GameStore.getState().playerEntity;
     if (!playerEntity) {
       console.warn("Main player entity not found");
       return;
@@ -172,8 +143,6 @@ export class PlayerInputSystem extends ECSYThreeSystem {
     const fingerLocation = new THREE.Vector2(positionX, positionY);
     const intersectionPoint = this.getTerrainIntersection(camera, terrain, fingerLocation);
     if (!intersectionPoint) return; // Clicked outside of the terrain
-
-    GameStore.update("targetPosition", intersectionPoint);
 
     const movementComponent = playerEntity.getMutableComponent(MovementComponent)!;
     movementComponent.targetPosition = intersectionPoint;
@@ -229,17 +198,17 @@ export class PlayerInputSystem extends ECSYThreeSystem {
   }
 
   private addClickPointer(scene: THREE.Scene, position: THREE.Vector3): void {
-    const geometry = new THREE.CircleGeometry(Constants.POINTER_RADIUS, Constants.POINTER_SEGMENTS);
+    const geometry = new THREE.CircleGeometry(InputConstants.POINTER_RADIUS, InputConstants.POINTER_SEGMENTS);
     const material = new THREE.MeshBasicMaterial({
-      color: Constants.POINTER_COLOR,
+      color: InputConstants.POINTER_COLOR,
       opacity: 1,
       transparent: true,
       side: 2,
     });
 
-    this.clickPointerTimer = Constants.POINTER_DURATION;
+    this.clickPointerTimer = InputConstants.POINTER_DURATION;
     this.clickPointer = new THREE.Mesh(geometry, material);
-    this.clickPointer.position.set(position.x, position.y + Constants.POINTER_OFFSET, position.z);
+    this.clickPointer.position.set(position.x, position.y + InputConstants.POINTER_OFFSET, position.z);
     this.clickPointer.rotation.x = -Math.PI / 2;
 
     scene.add(this.clickPointer);

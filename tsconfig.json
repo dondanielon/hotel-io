@@ -24,12 +24,13 @@
     /* Ammo.js */
     "allowSyntheticDefaultImports": true,
     "esModuleInterop": true,
-
     "paths": {
       "@root/*": ["src/*"],
       "@components/*": ["src/components/*"],
       "@systems/*": ["src/systems/*"],
-      "@libs/*": ["src/libs/*"]
+      "@libs/*": ["src/libs/*"],
+      "@managers/*": ["src/managers/*"],
+      "@shared/*": ["src/shared/*"]
     }
   },
   "include": ["src", "vite-env.d.ts"]

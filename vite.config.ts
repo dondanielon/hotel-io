@@ -20,6 +20,8 @@ export default defineConfig(({ mode }) => {
         "@components": "/src/components",
         "@systems": "/src/systems",
         "@libs": "/src/libs",
+        "@shared": "/src/shared",
+        "@game-modes": "/src/game-modes",
       },
     },
     // Expose env variables to the client
