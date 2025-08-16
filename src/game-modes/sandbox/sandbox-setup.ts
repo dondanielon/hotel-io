@@ -13,6 +13,10 @@ import { PlayerInputSystem } from "@systems/input/player-input.system";
 import { GLTFLoader } from "three/examples/jsm/Addons.js";
 import { PlayerConstants } from "@shared/constants/player.constants";
 import { GameStore } from "@shared/stores/game.store";
+import { Collision2DComponent } from "@root/components/collision-2d.component";
+import { CollisionSystem } from "@root/systems/core/collision-2d.system";
+import { CollisionLayer, CollisionShape2D } from "@root/shared/enums/game.enums";
+import { CollisionConstants } from "@root/shared/constants/collision.constants";
 
 interface ISetupTerrainConfig {
   terrain: any;
@@ -25,7 +29,8 @@ export function setupComponents(world: ECSYThreeWorld): void {
     .registerComponent(TerrainComponent)
     .registerComponent(PlayerComponent)
     .registerComponent(PlayerAnimationComponent)
-    .registerComponent(MovementComponent);
+    .registerComponent(MovementComponent)
+    .registerComponent(Collision2DComponent);
 }
 
 export function setupSystems(world: ECSYThreeWorld): void {
@@ -35,6 +40,7 @@ export function setupSystems(world: ECSYThreeWorld): void {
     .registerSystem(MovementSystem)
     .registerSystem(AnimationSystem)
     .registerSystem(PlayerInputSystem)
+    .registerSystem(CollisionSystem)
     .registerSystem(WebGLRendererSystem, { priority: 999 });
   // Multiplayer in future version
   // .registerSystem(SocketSystemV2, { priority: 0 })
@@ -132,9 +138,41 @@ export function setupPlayer(world: ECSYThreeWorld, loader: GLTFLoader, scene: TH
       dashDirection: null,
       dashTimer: 0,
     });
+    playerEntity.addComponent(Collision2DComponent, {
+      shape: CollisionShape2D.CIRCLE,
+      radius: CollisionConstants.RADIUS_PLAYER,
+      layer: CollisionLayer.PLAYER,
+      collidesWith: CollisionLayer.TERRAIN | CollisionLayer.WALLS,
+      isTrigger: false,
+      isActive: true,
+      collidingEntities: new Set(),
+    });
 
     GameStore.update("playerEntity", playerEntity);
 
     scene.add(model.scene);
   });
+
+  // Crear un cilindro y agregarlo a la escena y como entidad
+  const cylinderGeometry = new THREE.CylinderGeometry(0.5, 0.5, 2, 32);
+  const cylinderMaterial = new THREE.MeshToonMaterial({ color: 0x00ffcc });
+  const cylinderMesh = new THREE.Mesh(cylinderGeometry, cylinderMaterial);
+  cylinderMesh.position.set(10, 0, -10); // Puedes ajustar la posición según lo necesario
+  cylinderMesh.castShadow = true;
+  cylinderMesh.receiveShadow = true;
+  scene.add(cylinderMesh);
+
+  // Crear la entidad para el cilindro
+  world
+    .createEntity()
+    .addObject3DComponent(cylinderMesh)
+    .addComponent(Collision2DComponent, {
+      shape: CollisionShape2D.CIRCLE,
+      radius: 0.5,
+      layer: CollisionLayer.WALLS,
+      collidesWith: CollisionLayer.PLAYER | CollisionLayer.ENEMY | CollisionLayer.PROJECTILE,
+      isTrigger: false,
+      isActive: true,
+      collidingEntities: new Set(),
+    });
 }

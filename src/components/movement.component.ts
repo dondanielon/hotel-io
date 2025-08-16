@@ -1,5 +1,5 @@
-import { Component, RefPropType, Types } from 'ecsy';
-import { Vector3 } from 'three';
+import { Component, RefPropType, Types } from "ecsy";
+import { Vector3 } from "three";
 
 export class MovementComponent extends Component<MovementComponent> {
   isMoving!: boolean;
@@ -8,6 +8,7 @@ export class MovementComponent extends Component<MovementComponent> {
   isDashing!: boolean;
   dashDirection!: Vector3 | null;
   dashTimer!: number;
+
   static schema = {
     isMoving: { type: Types.Boolean },
     speed: { type: Types.Number },
