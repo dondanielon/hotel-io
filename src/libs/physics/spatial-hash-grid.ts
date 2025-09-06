@@ -1,10 +1,6 @@
 import { Collision2DComponent } from "@root/components/collision-2d.component";
 import { ECSYThreeEntity } from "ecsy-three";
 
-/**
- * Spatial Hash Grid implementation for efficient 2D collision detection
- * Optimized for game engines with dynamic entities
- */
 export class SpatialHashGrid {
   private grid: Map<string, ECSYThreeEntity[]> = new Map();
   private cellSize: number;
@@ -13,10 +9,7 @@ export class SpatialHashGrid {
     this.cellSize = cellSize;
   }
 
-  /**
-   * Insert an entity into the spatial grid
-   */
-  insert(entity: ECSYThreeEntity): void {
+  public insert(entity: ECSYThreeEntity): void {
     const collider = entity.getComponent(Collision2DComponent)!;
     const object = entity.getObject3D()!;
     const pos = object.position;
@@ -39,10 +32,7 @@ export class SpatialHashGrid {
     }
   }
 
-  /**
-   * Get entities nearby to the given entity
-   */
-  getNearbyEntities(entity: ECSYThreeEntity): ECSYThreeEntity[] {
+  public getNearbyEntities(entity: ECSYThreeEntity): ECSYThreeEntity[] {
     const collider = entity.getComponent(Collision2DComponent)!;
     const object = entity.getObject3D()!;
     const pos = object.position;
@@ -73,17 +63,11 @@ export class SpatialHashGrid {
     return nearbyEntities;
   }
 
-  /**
-   * Clear the spatial grid
-   */
-  clear(): void {
+  public clear(): void {
     this.grid.clear();
   }
 
-  /**
-   * Get grid statistics for debugging
-   */
-  getStats(): { totalCells: number; totalEntities: number; avgEntitiesPerCell: number } {
+  public getStats(): { totalCells: number; totalEntities: number; avgEntitiesPerCell: number } {
     const totalCells = this.grid.size;
     let totalEntities = 0;
 

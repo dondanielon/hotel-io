@@ -153,16 +153,14 @@ export function setupPlayer(world: ECSYThreeWorld, loader: GLTFLoader, scene: TH
     scene.add(model.scene);
   });
 
-  // Crear un cilindro y agregarlo a la escena y como entidad
   const cylinderGeometry = new THREE.CylinderGeometry(0.5, 0.5, 2, 32);
   const cylinderMaterial = new THREE.MeshToonMaterial({ color: 0x00ffcc });
   const cylinderMesh = new THREE.Mesh(cylinderGeometry, cylinderMaterial);
-  cylinderMesh.position.set(10, 0, -10); // Puedes ajustar la posición según lo necesario
+  cylinderMesh.position.set(10, 0, -10);
   cylinderMesh.castShadow = true;
   cylinderMesh.receiveShadow = true;
   scene.add(cylinderMesh);
 
-  // Crear la entidad para el cilindro
   world
     .createEntity()
     .addObject3DComponent(cylinderMesh)

@@ -2,7 +2,8 @@ import * as THREE from "three";
 import { ECSYThreeEntity, ECSYThreeSystem, Object3DComponent } from "ecsy-three";
 import { Collision2DComponent } from "@components/collision-2d.component";
 import { CollisionShape2D } from "@shared/enums/game.enums";
-import { SpatialHashGrid, CollisionUtils } from "@libs/physics";
+import { SpatialHashGrid } from "@libs/physics";
+import { MathUtils } from "@root/shared/utils/math.utils";
 
 /**
  * System responsible for handling collision detection
@@ -14,41 +15,18 @@ export class CollisionSystem extends ECSYThreeSystem {
     },
   };
 
-  private spatialGrid = new SpatialHashGrid(1);
-
-  private performanceStats = {
-    lastFrameTime: 0,
-    totalFrames: 0,
-    averageFrameTime: 0,
-    peakFrameTime: 0,
-  };
+  private spatialGrid = new SpatialHashGrid(20);
 
   execute(_delta: number, _time: number): void {
-    const startTime = performance.now();
     const entities = this.queries.colliders.results;
 
     this.handleCollisions(entities);
     this.updateCollisionStates(entities);
-
-    // Update performance stats
-    const frameTime = performance.now() - startTime;
-    this.updatePerformanceStats(frameTime);
-  }
-
-  private updatePerformanceStats(frameTime: number): void {
-    this.performanceStats.lastFrameTime = frameTime;
-    this.performanceStats.totalFrames++;
-    this.performanceStats.averageFrameTime =
-      (this.performanceStats.averageFrameTime * (this.performanceStats.totalFrames - 1) + frameTime) /
-      this.performanceStats.totalFrames;
-    this.performanceStats.peakFrameTime = Math.max(this.performanceStats.peakFrameTime, frameTime);
   }
 
   private handleCollisions(entities: ECSYThreeEntity[]): void {
-    // Clear and rebuild spatial grid
     this.spatialGrid.clear();
 
-    // Insert all entities into spatial grid
     for (const entity of entities) {
       const collider = entity.getComponent(Collision2DComponent)!;
       if (collider.isActive) {
@@ -56,7 +34,6 @@ export class CollisionSystem extends ECSYThreeSystem {
       }
     }
 
-    // Check collisions using spatial grid
     for (const entity of entities) {
       const collider = entity.getComponent(Collision2DComponent)!;
       if (!collider.isActive) continue;
@@ -97,8 +74,10 @@ export class CollisionSystem extends ECSYThreeSystem {
     posB: THREE.Vector3,
     colliderB: Collision2DComponent,
   ): boolean {
+    const distance = MathUtils.distance2D(posA.x, posA.z, posB.x, posB.z);
+
     if (colliderA.shape === CollisionShape2D.CIRCLE && colliderB.shape === CollisionShape2D.CIRCLE) {
-      return CollisionUtils.testCircleCollision(posA, colliderA.radius, posB, colliderB.radius);
+      return distance < colliderA.radius + colliderB.radius;
     }
 
     return false;
@@ -139,12 +118,14 @@ export class CollisionSystem extends ECSYThreeSystem {
             return;
           }
 
-          const isColliding = CollisionUtils.testCircleCollision(
-            object.position,
-            collider.radius,
-            otherObject.position,
-            otherCollider.radius,
+          const distance = MathUtils.distance2D(
+            object.position.x,
+            object.position.z,
+            otherObject.position.x,
+            otherObject.position.z,
           );
+
+          const isColliding = distance < collider.radius + otherCollider.radius;
 
           if (!isColliding) {
             collider.collidingEntities.delete(otherEntity);
@@ -153,9 +134,5 @@ export class CollisionSystem extends ECSYThreeSystem {
         });
       }
     }
-  }
-
-  getPerformanceStats(): typeof this.performanceStats {
-    return { ...this.performanceStats };
   }
 }
