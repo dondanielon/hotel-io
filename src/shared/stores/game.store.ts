@@ -1,5 +1,5 @@
 import { User } from "@root/shared/types/user.types";
-import { Store } from "./store";
+import { Store } from "../../libs/state-manager/store";
 import * as THREE from "three";
 import { ECSYThreeEntity } from "ecsy-three";
 

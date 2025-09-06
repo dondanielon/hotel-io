@@ -4,14 +4,23 @@ import * as THREE from "three";
 import { ECSYThreeEntity } from "ecsy-three";
 
 export class Collision2DComponent extends Component<Collision2DComponent> {
+  // Forma básica de colisión
   shape!: CollisionShape2D;
   radius!: number;
+
+  // Sistema de capas optimizado
   layer!: CollisionLayer;
-  size!: THREE.Vector2;
   collidesWith!: number;
+
+  // Propiedades extendidas para formas complejas
+  size!: THREE.Vector2;
   points!: THREE.Vector2[];
+
+  // Estados de colisión
   isActive!: boolean;
   isTrigger!: boolean;
+
+  // Cache de entidades colisionando (evita recalculos)
   collidingEntities!: Set<ECSYThreeEntity>;
 
   static schema = {
