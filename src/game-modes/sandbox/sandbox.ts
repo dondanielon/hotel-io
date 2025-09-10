@@ -63,5 +63,8 @@ export class Sandbox {
         position: new THREE.Vector3(0, 0, 0),
       },
     });
+
+    console.log("==============");
+    console.log(THREE.WebGPUCoordinateSystem);
   }
 }

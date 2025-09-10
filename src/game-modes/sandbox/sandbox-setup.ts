@@ -17,6 +17,7 @@ import { Collision2DComponent } from "@root/components/collision-2d.component";
 import { CollisionSystem } from "@root/systems/core/collision-2d.system";
 import { CollisionLayer, CollisionShape2D } from "@root/shared/enums/game.enums";
 import { CollisionConstants } from "@root/shared/constants/collision.constants";
+import { TerrainEditorSystem } from "@root/systems/gameplay/terrain-editor.system";
 
 interface ISetupTerrainConfig {
   terrain: any;
@@ -41,6 +42,7 @@ export function setupSystems(world: ECSYThreeWorld): void {
     .registerSystem(AnimationSystem)
     .registerSystem(PlayerInputSystem)
     .registerSystem(CollisionSystem)
+    .registerSystem(TerrainEditorSystem)
     .registerSystem(WebGLRendererSystem, { priority: 999 });
   // Multiplayer in future version
   // .registerSystem(SocketSystemV2, { priority: 0 })
@@ -127,6 +129,20 @@ export function setupPlayer(world: ECSYThreeWorld, loader: GLTFLoader, scene: TH
     model.scene.position.set(0, 0, 0);
     model.scene.castShadow = true;
 
+    model.scene.traverse((child) => {
+      if (child instanceof THREE.Mesh) {
+        const wireframeGeometry = new THREE.WireframeGeometry(child.geometry);
+        const wireframeMaterial = new THREE.LineBasicMaterial({ color: 0xff6600 });
+        const wireframeMesh = new THREE.LineSegments(wireframeGeometry, wireframeMaterial);
+
+        wireframeMesh.position.copy(child.position);
+        wireframeMesh.rotation.copy(child.rotation);
+        wireframeMesh.scale.copy(child.scale);
+
+        scene.add(wireframeMesh);
+      }
+    });
+
     const playerEntity = world.createEntity();
     playerEntity.addObject3DComponent(model.scene);
     playerEntity.addComponent(PlayerComponent, { username: "ALPHA_TEST", id: crypto.randomUUID() });
@@ -154,12 +170,21 @@ export function setupPlayer(world: ECSYThreeWorld, loader: GLTFLoader, scene: TH
   });
 
   const cylinderGeometry = new THREE.CylinderGeometry(0.5, 0.5, 2, 32);
-  const cylinderMaterial = new THREE.MeshToonMaterial({ color: 0x00ffcc });
+  const cylinderMaterial = new THREE.MeshToonMaterial({ color: 0x00ffcc, transparent: true, opacity: 0.2 });
   const cylinderMesh = new THREE.Mesh(cylinderGeometry, cylinderMaterial);
   cylinderMesh.position.set(10, 0, -10);
   cylinderMesh.castShadow = true;
   cylinderMesh.receiveShadow = true;
+
+  const c2Geometry = new THREE.CylinderGeometry(0.3, 0.3, 3, 10);
+  const c2Material = new THREE.MeshToonMaterial({ color: 0xff6600 });
+  const c2Mesh = new THREE.Mesh(c2Geometry, c2Material);
+  c2Mesh.position.set(10, 0, -10);
+  c2Mesh.castShadow = true;
+  c2Mesh.receiveShadow = true;
+
   scene.add(cylinderMesh);
+  scene.add(c2Mesh);
 
   world
     .createEntity()
