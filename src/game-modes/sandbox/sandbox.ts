@@ -35,6 +35,24 @@ export class Sandbox {
 
     renderer.setAnimationLoop(() => {
       stats?.begin();
+
+      //const time = performance.now() * 0.001;
+      //
+      //try {
+      //  scene.traverse((child) => {
+      //    if (
+      //      child instanceof THREE.Mesh &&
+      //      child.material instanceof THREE.ShaderMaterial &&
+      //      child.material.uniforms
+      //    ) {
+      //      child.material.uniforms.uTime.value = time;
+      //      child.material.uniforms.uViewPosition.value.copy(camera.position);
+      //    }
+      //  });
+      //} catch (error) {
+      //  console.error("Error in render loop: ", error);
+      //}
+
       this.world.execute(clock.getDelta(), clock.elapsedTime);
       stats?.end();
     });
@@ -63,8 +81,5 @@ export class Sandbox {
         position: new THREE.Vector3(0, 0, 0),
       },
     });
-
-    console.log("==============");
-    console.log(THREE.WebGPUCoordinateSystem);
   }
 }
