@@ -18,6 +18,7 @@ import { CollisionSystem } from "@root/systems/core/collision-2d.system";
 import { CollisionLayer, CollisionShape2D } from "@root/shared/enums/game.enums";
 import { CollisionConstants } from "@root/shared/constants/collision.constants";
 import { TerrainEditorSystem } from "@root/systems/gameplay/terrain-editor.system";
+//import { toonShader } from "./sandbox-shaders";
 
 interface ISetupTerrainConfig {
   terrain: any;
@@ -123,25 +124,69 @@ export function setupTerrain(world: ECSYThreeWorld, config: ISetupTerrainConfig)
   world.createEntity().addObject3DComponent(terrainMesh, config.sceneEntity).addComponent(TerrainComponent);
 }
 
+function createCustomAxesHelper(xSize: number, ySize: number, zSize: number) {
+  const group = new THREE.Group();
+
+  const xGeometry = new THREE.BufferGeometry().setFromPoints([
+    new THREE.Vector3(0, 0, 0),
+    new THREE.Vector3(xSize, 0, 0),
+  ]);
+  const xMaterial = new THREE.LineBasicMaterial({ color: 0xff0000 });
+  const xLine = new THREE.Line(xGeometry, xMaterial);
+  group.add(xLine);
+
+  const yGeometry = new THREE.BufferGeometry().setFromPoints([
+    new THREE.Vector3(0, 0, 0),
+    new THREE.Vector3(0, ySize, 0),
+  ]);
+  const yMaterial = new THREE.LineBasicMaterial({ color: 0x00ff00 });
+  const yLine = new THREE.Line(yGeometry, yMaterial);
+  group.add(yLine);
+
+  const zGeometry = new THREE.BufferGeometry().setFromPoints([
+    new THREE.Vector3(0, 0, 0),
+    new THREE.Vector3(0, 0, zSize),
+  ]);
+  const zMaterial = new THREE.LineBasicMaterial({ color: 0x0000ff });
+  const zLine = new THREE.Line(zGeometry, zMaterial);
+  group.add(zLine);
+
+  return group;
+}
+
 export function setupPlayer(world: ECSYThreeWorld, loader: GLTFLoader, scene: THREE.Scene): void {
   loader.load("/models/basic_male.glb", (model) => {
     model.scene.scale.set(1, 1, 1);
     model.scene.position.set(0, 0, 0);
     model.scene.castShadow = true;
 
-    model.scene.traverse((child) => {
-      if (child instanceof THREE.Mesh) {
-        const wireframeGeometry = new THREE.WireframeGeometry(child.geometry);
-        const wireframeMaterial = new THREE.LineBasicMaterial({ color: 0xff6600 });
-        const wireframeMesh = new THREE.LineSegments(wireframeGeometry, wireframeMaterial);
+    // Add debug axes to character
+    model.scene.add(createCustomAxesHelper(1, 3, 1));
 
-        wireframeMesh.position.copy(child.position);
-        wireframeMesh.rotation.copy(child.rotation);
-        wireframeMesh.scale.copy(child.scale);
-
-        scene.add(wireframeMesh);
-      }
-    });
+    //model.scene.traverse((child) => {
+    //  if (child instanceof THREE.Mesh) {
+    //    const wireframeGeometry = new THREE.WireframeGeometry(child.geometry);
+    //    const wireframeMaterial = new THREE.LineBasicMaterial({ color: 0xff6600 });
+    //    const wireframeMesh = new THREE.LineSegments(wireframeGeometry, wireframeMaterial);
+    //
+    //    wireframeMesh.position.copy(child.position);
+    //    wireframeMesh.rotation.copy(child.rotation);
+    //    wireframeMesh.scale.copy(child.scale);
+    //
+    //    try {
+    //      child.material = toonShader.clone();
+    //
+    //      if (child.material.uniforms && child.material.uniforms.uColor) {
+    //        const originalColor = child.material.color;
+    //        child.material.uniforms.uColor.value = originalColor;
+    //      }
+    //    } catch (error) {
+    //      console.error("Error adding shader to model: ", error);
+    //    }
+    //
+    //    scene.add(wireframeMesh);
+    //  }
+    //});
 
     const playerEntity = world.createEntity();
     playerEntity.addObject3DComponent(model.scene);
@@ -172,14 +217,14 @@ export function setupPlayer(world: ECSYThreeWorld, loader: GLTFLoader, scene: TH
   const cylinderGeometry = new THREE.CylinderGeometry(0.5, 0.5, 2, 32);
   const cylinderMaterial = new THREE.MeshToonMaterial({ color: 0x00ffcc, transparent: true, opacity: 0.2 });
   const cylinderMesh = new THREE.Mesh(cylinderGeometry, cylinderMaterial);
-  cylinderMesh.position.set(10, 0, -10);
+  cylinderMesh.position.set(2, 1, 0);
   cylinderMesh.castShadow = true;
   cylinderMesh.receiveShadow = true;
 
   const c2Geometry = new THREE.CylinderGeometry(0.3, 0.3, 3, 10);
   const c2Material = new THREE.MeshToonMaterial({ color: 0xff6600 });
   const c2Mesh = new THREE.Mesh(c2Geometry, c2Material);
-  c2Mesh.position.set(10, 0, -10);
+  c2Mesh.position.set(2, 1.5, 0);
   c2Mesh.castShadow = true;
   c2Mesh.receiveShadow = true;
 
