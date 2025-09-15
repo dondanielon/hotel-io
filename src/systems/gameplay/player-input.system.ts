@@ -21,7 +21,7 @@ export class PlayerInputSystem extends ECSYThreeSystem {
       components: [TerrainComponent, Object3DComponent, MeshTagComponent],
     },
     renderer: { components: [WebGLRendererComponent] },
-    players: { components: [PlayerComponent, MovementComponent] },
+    players: { components: [MovementComponent] },
   };
 
   init(): void {
@@ -54,7 +54,8 @@ export class PlayerInputSystem extends ECSYThreeSystem {
     e.preventDefault();
 
     const playerEntity = GameStore.getState().playerEntity;
-    if (!playerEntity) {
+    const wireframeEntity = GameStore.getState().playerWireframe;
+    if (!playerEntity || !wireframeEntity) {
       console.warn("Main player entity not found");
       return;
     }
@@ -75,6 +76,13 @@ export class PlayerInputSystem extends ECSYThreeSystem {
     movementComponent.dashDirection = null;
     movementComponent.dashTimer = 0;
 
+    const wireframeMovementComponent = wireframeEntity.getMutableComponent(MovementComponent)!;
+    wireframeMovementComponent.targetPosition = intersectionPoint;
+    wireframeMovementComponent.isMoving = true;
+    wireframeMovementComponent.isDashing = false;
+    wireframeMovementComponent.dashDirection = null;
+    wireframeMovementComponent.dashTimer = 0;
+
     if (this.clickPointer) {
       scene.remove(this.clickPointer);
       this.clickPointer = null;
@@ -85,13 +93,15 @@ export class PlayerInputSystem extends ECSYThreeSystem {
   }
 
   private onKeyDown(event: KeyboardEvent): void {
+    console.log(event.key.toLowerCase());
     switch (event.key.toLowerCase()) {
       case "w": {
         const lastDashTime = GameStore.getState().lastDashTime;
         if (lastDashTime > Date.now() - this.dashDelay) return;
 
         const playerEntity = GameStore.getState().playerEntity;
-        if (!playerEntity) {
+        const wireframeEntity = GameStore.getState().playerWireframe;
+        if (!playerEntity || !wireframeEntity) {
           console.warn("Main player entity not found");
           return;
         }
@@ -104,6 +114,7 @@ export class PlayerInputSystem extends ECSYThreeSystem {
 
         const playerMesh = playerEntity.getObject3D<THREE.Mesh>()!;
         const movementComponent = playerEntity.getMutableComponent(MovementComponent)!;
+        const wireframeMovementComponent = wireframeEntity.getMutableComponent(MovementComponent)!;
 
         // Calculate dash direction from player to mouse position
         const dashDirection = new THREE.Vector3().subVectors(intersectionPoint, playerMesh.position).normalize();
@@ -112,10 +123,15 @@ export class PlayerInputSystem extends ECSYThreeSystem {
         movementComponent.isDashing = true;
         movementComponent.dashDirection = dashDirection;
         movementComponent.dashTimer = PlayerConstants.DASH_DURATION;
+        wireframeMovementComponent.isDashing = true;
+        wireframeMovementComponent.dashDirection = dashDirection;
+        wireframeMovementComponent.dashTimer = PlayerConstants.DASH_DURATION;
 
         // Clear target position and stop normal movement
         movementComponent.isMoving = false;
         movementComponent.targetPosition = null;
+        wireframeMovementComponent.isMoving = false;
+        wireframeMovementComponent.targetPosition = null;
         GameStore.update("lastDashTime", Date.now());
 
         if (this.clickPointer) {
@@ -125,6 +141,27 @@ export class PlayerInputSystem extends ECSYThreeSystem {
         }
 
         this.addClickPointer(scene, intersectionPoint);
+        break;
+      }
+      case "`": {
+        // open console
+        break;
+      }
+      // For now I will use this key for toggle the wireframe and axes helper on objects
+      case "+": {
+        // This is only working with the main character wireframe for now
+        // TODO: Let's add something to handle the wireframe on other objects
+        const wireframeEntity = GameStore.getState().playerWireframe;
+        if (!wireframeEntity) break;
+
+        const wireframeMesh = wireframeEntity.getObject3D<THREE.Mesh>()!;
+        wireframeMesh.visible = !wireframeMesh.visible;
+
+        const axesGroup = GameStore.getState().playerAxes;
+        if (axesGroup) {
+          axesGroup.visible = !axesGroup.visible;
+        }
+
         break;
       }
     }

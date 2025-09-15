@@ -75,7 +75,7 @@ export function setupRenderer(renderer: THREE.WebGLRenderer): void {
 export function setupSceneLighting(scene: THREE.Scene): void {
   // Directional lights for shadows
   const directionalLight_1 = new THREE.DirectionalLight(0xffffff, 1);
-  const directionalLight_2 = new THREE.DirectionalLight(0xffffff, 0.5);
+  //const directionalLight_2 = new THREE.DirectionalLight(0xffffff, 0.5);
 
   // Ambient light for overall illumination
   const ambientLight = new THREE.AmbientLight(0x404040, 0.8);
@@ -84,9 +84,9 @@ export function setupSceneLighting(scene: THREE.Scene): void {
   const hemisphereLight = new THREE.HemisphereLight(0x87ceeb, 0x8b4513, 0.6);
 
   directionalLight_1.position.set(10, 10, 10);
-  directionalLight_2.position.set(-10, 10, -10);
+  //directionalLight_2.position.set(-10, 10, -10);
   directionalLight_1.castShadow = true;
-  directionalLight_2.castShadow = true;
+  //directionalLight_2.castShadow = true;
 
   // Configure shadow properties for better quality
   directionalLight_1.shadow.mapSize.width = 2048;
@@ -99,7 +99,7 @@ export function setupSceneLighting(scene: THREE.Scene): void {
   directionalLight_1.shadow.camera.bottom = -20;
 
   scene.add(directionalLight_1);
-  scene.add(directionalLight_2);
+  //scene.add(directionalLight_2);
   scene.add(ambientLight);
   scene.add(hemisphereLight);
 }
@@ -128,15 +128,15 @@ function createCustomAxesHelper(xSize: number, ySize: number, zSize: number) {
   const group = new THREE.Group();
 
   const xGeometry = new THREE.BufferGeometry().setFromPoints([
-    new THREE.Vector3(0, 0, 0),
-    new THREE.Vector3(xSize, 0, 0),
+    new THREE.Vector3(0, 0.01, 0),
+    new THREE.Vector3(xSize, 0.01, 0),
   ]);
   const xMaterial = new THREE.LineBasicMaterial({ color: 0xff0000 });
   const xLine = new THREE.Line(xGeometry, xMaterial);
   group.add(xLine);
 
   const yGeometry = new THREE.BufferGeometry().setFromPoints([
-    new THREE.Vector3(0, 0, 0),
+    new THREE.Vector3(0, 0.01, 0),
     new THREE.Vector3(0, ySize, 0),
   ]);
   const yMaterial = new THREE.LineBasicMaterial({ color: 0x00ff00 });
@@ -144,8 +144,8 @@ function createCustomAxesHelper(xSize: number, ySize: number, zSize: number) {
   group.add(yLine);
 
   const zGeometry = new THREE.BufferGeometry().setFromPoints([
-    new THREE.Vector3(0, 0, 0),
-    new THREE.Vector3(0, 0, zSize),
+    new THREE.Vector3(0, 0.01, 0),
+    new THREE.Vector3(0, 0.01, zSize),
   ]);
   const zMaterial = new THREE.LineBasicMaterial({ color: 0x0000ff });
   const zLine = new THREE.Line(zGeometry, zMaterial);
@@ -161,32 +161,49 @@ export function setupPlayer(world: ECSYThreeWorld, loader: GLTFLoader, scene: TH
     model.scene.castShadow = true;
 
     // Add debug axes to character
-    model.scene.add(createCustomAxesHelper(1, 3, 1));
+    const playerAxes = createCustomAxesHelper(1, 3, 1);
+    playerAxes.visible = false;
+    model.scene.add(playerAxes);
+    GameStore.update("playerAxes", playerAxes);
 
-    //model.scene.traverse((child) => {
-    //  if (child instanceof THREE.Mesh) {
-    //    const wireframeGeometry = new THREE.WireframeGeometry(child.geometry);
-    //    const wireframeMaterial = new THREE.LineBasicMaterial({ color: 0xff6600 });
-    //    const wireframeMesh = new THREE.LineSegments(wireframeGeometry, wireframeMaterial);
-    //
-    //    wireframeMesh.position.copy(child.position);
-    //    wireframeMesh.rotation.copy(child.rotation);
-    //    wireframeMesh.scale.copy(child.scale);
-    //
-    //    try {
-    //      child.material = toonShader.clone();
-    //
-    //      if (child.material.uniforms && child.material.uniforms.uColor) {
-    //        const originalColor = child.material.color;
-    //        child.material.uniforms.uColor.value = originalColor;
-    //      }
-    //    } catch (error) {
-    //      console.error("Error adding shader to model: ", error);
-    //    }
-    //
-    //    scene.add(wireframeMesh);
-    //  }
-    //});
+    model.scene.traverse((child) => {
+      if (child instanceof THREE.Mesh) {
+        const wireframeGeometry = new THREE.WireframeGeometry(child.geometry);
+        const wireframeMaterial = new THREE.LineBasicMaterial({ color: 0xff6600 });
+        const wireframeMesh = new THREE.LineSegments(wireframeGeometry, wireframeMaterial);
+
+        wireframeMesh.position.copy(child.position);
+        wireframeMesh.rotation.copy(child.rotation);
+        wireframeMesh.scale.copy(child.scale);
+        wireframeMesh.visible = false;
+
+        const wireframeEntity = world.createEntity();
+        wireframeEntity.addObject3DComponent(wireframeMesh);
+        wireframeEntity.addComponent(MovementComponent, {
+          speed: PlayerConstants.SPEED,
+          isMoving: false,
+          targetPosition: null,
+          isDashing: false,
+          dashDirection: null,
+          dashTimer: 0,
+        });
+
+        GameStore.update("playerWireframe", wireframeEntity);
+
+        //try {
+        //  child.material = toonShader.clone();
+        //
+        //  if (child.material.uniforms && child.material.uniforms.uColor) {
+        //    const originalColor = child.material.color;
+        //    child.material.uniforms.uColor.value = originalColor;
+        //  }
+        //} catch (error) {
+        //  console.error("Error adding shader to model: ", error);
+        //}
+        //
+        scene.add(wireframeMesh);
+      }
+    });
 
     const playerEntity = world.createEntity();
     playerEntity.addObject3DComponent(model.scene);
@@ -217,14 +234,14 @@ export function setupPlayer(world: ECSYThreeWorld, loader: GLTFLoader, scene: TH
   const cylinderGeometry = new THREE.CylinderGeometry(0.5, 0.5, 2, 32);
   const cylinderMaterial = new THREE.MeshToonMaterial({ color: 0x00ffcc, transparent: true, opacity: 0.2 });
   const cylinderMesh = new THREE.Mesh(cylinderGeometry, cylinderMaterial);
-  cylinderMesh.position.set(2, 1, 0);
+  cylinderMesh.position.set(2, 1, -2);
   cylinderMesh.castShadow = true;
   cylinderMesh.receiveShadow = true;
 
   const c2Geometry = new THREE.CylinderGeometry(0.3, 0.3, 3, 10);
   const c2Material = new THREE.MeshToonMaterial({ color: 0xff6600 });
   const c2Mesh = new THREE.Mesh(c2Geometry, c2Material);
-  c2Mesh.position.set(2, 1.5, 0);
+  c2Mesh.position.set(2, 1.5, -2);
   c2Mesh.castShadow = true;
   c2Mesh.receiveShadow = true;
 

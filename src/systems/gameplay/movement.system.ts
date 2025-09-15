@@ -11,7 +11,7 @@ import { PlayerConstants } from "@shared/constants/player.constants";
 export class MovementSystem extends ECSYThreeSystem {
   static queries = {
     players: {
-      components: [PlayerComponent, MovementComponent],
+      components: [MovementComponent],
     },
   };
 

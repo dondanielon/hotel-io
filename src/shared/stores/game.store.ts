@@ -13,6 +13,8 @@ export interface GameState {
   lastDashTime: number;
   cameraTarget: ECSYThreeEntity | null;
   playerEntity: ECSYThreeEntity | null;
+  playerWireframe: ECSYThreeEntity | null;
+  playerAxes: THREE.Group<THREE.Object3DEventMap> | null;
 }
 
 export const GameStore = new Store<GameState>({
@@ -25,4 +27,6 @@ export const GameStore = new Store<GameState>({
   lastDashTime: 0,
   cameraTarget: null,
   playerEntity: null,
+  playerWireframe: null,
+  playerAxes: null,
 });
