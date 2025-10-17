@@ -29,6 +29,7 @@ export class Store<T extends object> {
 
   update<K extends keyof T>(key: K, value: T[K]): void {
     this.setState({ [key]: value } as unknown as Partial<T>);
+    this.notify();
   }
 
   reset(initialState: T): void {

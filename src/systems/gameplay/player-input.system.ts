@@ -2,10 +2,10 @@ import * as THREE from "three";
 import { ECSYThreeSystem, MeshTagComponent, Object3DComponent, WebGLRendererComponent } from "ecsy-three";
 import { GameStore } from "@root/shared/stores/game.store";
 import { TerrainComponent } from "@root/components/terrain.component";
-import { PlayerComponent } from "@root/components/player.component";
 import { MovementComponent } from "@root/components/movement.component";
 import { InputConstants } from "@shared/constants/input.constants";
 import { PlayerConstants } from "@root/shared/constants/player.constants";
+import { ConsoleStore } from "@root/shared/stores/console.store";
 
 /**
  * System responsible for handling player input and movement
@@ -27,9 +27,6 @@ export class PlayerInputSystem extends ECSYThreeSystem {
   init(): void {
     window.addEventListener("contextmenu", this.onRightClick.bind(this));
     window.addEventListener("keypress", this.onKeyDown.bind(this));
-    window.addEventListener("touchstart", this.onTouchStart.bind(this));
-    window.addEventListener("touchmove", this.onTouchMove.bind(this));
-    window.addEventListener("touchend", this.onTouchEnd.bind(this));
   }
 
   execute(delta: number, _time: number): void {
@@ -93,7 +90,6 @@ export class PlayerInputSystem extends ECSYThreeSystem {
   }
 
   private onKeyDown(event: KeyboardEvent): void {
-    console.log(event.key.toLowerCase());
     switch (event.key.toLowerCase()) {
       case "w": {
         const lastDashTime = GameStore.getState().lastDashTime;
@@ -143,10 +139,6 @@ export class PlayerInputSystem extends ECSYThreeSystem {
         this.addClickPointer(scene, intersectionPoint);
         break;
       }
-      case "`": {
-        // open console
-        break;
-      }
       // For now I will use this key for toggle the wireframe and axes helper on objects
       case "+": {
         // This is only working with the main character wireframe for now
@@ -164,42 +156,21 @@ export class PlayerInputSystem extends ECSYThreeSystem {
 
         break;
       }
+      case "`": {
+        event.preventDefault();
+        ConsoleStore.update("isOpen", !ConsoleStore.getState().isOpen);
+        const consoleContainer = document.getElementById("console-container");
+
+        if (consoleContainer) {
+          if (ConsoleStore.getState().isOpen) {
+            const webConsole = document.createElement("web-console");
+            consoleContainer.appendChild(webConsole);
+          } else {
+            consoleContainer.innerHTML = "";
+          }
+        }
+      }
     }
-  }
-
-  private onTouchStart(event: TouchEvent): void {
-    const playerEntity = GameStore.getState().playerEntity;
-    if (!playerEntity) {
-      console.warn("Main player entity not found");
-      return;
-    }
-
-    const { camera, terrain, scene } = this.getSceneElements();
-    const positionX = (event.touches[0].clientX / window.innerWidth) * 2 - 1;
-    const positionY = (event.touches[0].clientY / window.innerHeight) * 2 - 1;
-    const fingerLocation = new THREE.Vector2(positionX, positionY);
-    const intersectionPoint = this.getTerrainIntersection(camera, terrain, fingerLocation);
-    if (!intersectionPoint) return; // Clicked outside of the terrain
-
-    const movementComponent = playerEntity.getMutableComponent(MovementComponent)!;
-    movementComponent.targetPosition = intersectionPoint;
-    movementComponent.isMoving = true;
-
-    if (this.clickPointer) {
-      scene.remove(this.clickPointer);
-      this.clickPointer = null;
-      this.clickPointerTimer = 0;
-    }
-
-    this.addClickPointer(scene, intersectionPoint);
-  }
-
-  private onTouchMove(event: TouchEvent): void {
-    console.info("on touch move not implemented", event.touches.length);
-  }
-
-  private onTouchEnd(event: TouchEvent): void {
-    console.info("on touch end not implemented", event.touches.length);
   }
 
   private getSceneElements(): {
