@@ -18,6 +18,7 @@ import { CollisionSystem } from "@root/systems/core/collision-2d.system";
 import { CollisionLayer, CollisionShape2D } from "@root/shared/enums/game.enums";
 import { CollisionConstants } from "@root/shared/constants/collision.constants";
 import { TerrainEditorSystem } from "@root/systems/gameplay/terrain-editor.system";
+import { WorldEditorSystem } from "@root/systems/core/world-editor.system";
 //import { toonShader } from "./sandbox-shaders";
 
 interface ISetupTerrainConfig {
@@ -44,6 +45,7 @@ export function setupSystems(world: ECSYThreeWorld): void {
     .registerSystem(PlayerInputSystem)
     .registerSystem(CollisionSystem)
     .registerSystem(TerrainEditorSystem)
+    .registerSystem(WorldEditorSystem)
     .registerSystem(WebGLRendererSystem, { priority: 999 });
   // Multiplayer in future version
   // .registerSystem(SocketSystemV2, { priority: 0 })
@@ -231,33 +233,35 @@ export function setupPlayer(world: ECSYThreeWorld, loader: GLTFLoader, scene: TH
     scene.add(model.scene);
   });
 
-  const cylinderGeometry = new THREE.CylinderGeometry(0.5, 0.5, 2, 32);
-  const cylinderMaterial = new THREE.MeshToonMaterial({ color: 0x00ffcc, transparent: true, opacity: 0.2 });
-  const cylinderMesh = new THREE.Mesh(cylinderGeometry, cylinderMaterial);
-  cylinderMesh.position.set(2, 1, -2);
-  cylinderMesh.castShadow = true;
-  cylinderMesh.receiveShadow = true;
+  // Here's an example of how to apply the collisions
 
-  const c2Geometry = new THREE.CylinderGeometry(0.3, 0.3, 3, 10);
-  const c2Material = new THREE.MeshToonMaterial({ color: 0xff6600 });
-  const c2Mesh = new THREE.Mesh(c2Geometry, c2Material);
-  c2Mesh.position.set(2, 1.5, -2);
-  c2Mesh.castShadow = true;
-  c2Mesh.receiveShadow = true;
-
-  scene.add(cylinderMesh);
-  scene.add(c2Mesh);
-
-  world
-    .createEntity()
-    .addObject3DComponent(cylinderMesh)
-    .addComponent(Collision2DComponent, {
-      shape: CollisionShape2D.CIRCLE,
-      radius: 0.5,
-      layer: CollisionLayer.WALLS,
-      collidesWith: CollisionLayer.PLAYER | CollisionLayer.ENEMY | CollisionLayer.PROJECTILE,
-      isTrigger: false,
-      isActive: true,
-      collidingEntities: new Set(),
-    });
+  //const cylinderGeometry = new THREE.CylinderGeometry(0.5, 0.5, 2, 32);
+  //const cylinderMaterial = new THREE.MeshToonMaterial({ color: 0x00ffcc, transparent: true, opacity: 0.2 });
+  //const cylinderMesh = new THREE.Mesh(cylinderGeometry, cylinderMaterial);
+  //cylinderMesh.position.set(2, 1, -2);
+  //cylinderMesh.castShadow = true;
+  //cylinderMesh.receiveShadow = true;
+  //
+  //const c2Geometry = new THREE.CylinderGeometry(0.3, 0.3, 3, 10);
+  //const c2Material = new THREE.MeshToonMaterial({ color: 0xff6600 });
+  //const c2Mesh = new THREE.Mesh(c2Geometry, c2Material);
+  //c2Mesh.position.set(2, 1.5, -2);
+  //c2Mesh.castShadow = true;
+  //c2Mesh.receiveShadow = true;
+  //
+  //scene.add(cylinderMesh);
+  //scene.add(c2Mesh);
+  //
+  //world
+  //  .createEntity()
+  //  .addObject3DComponent(cylinderMesh)
+  //  .addComponent(Collision2DComponent, {
+  //    shape: CollisionShape2D.CIRCLE,
+  //    radius: 0.5,
+  //    layer: CollisionLayer.WALLS,
+  //    collidesWith: CollisionLayer.PLAYER | CollisionLayer.ENEMY | CollisionLayer.PROJECTILE,
+  //    isTrigger: false,
+  //    isActive: true,
+  //    collidingEntities: new Set(),
+  //  });
 }
