@@ -92,6 +92,9 @@ export class PlayerInputSystem extends ECSYThreeSystem {
   private onKeyDown(event: KeyboardEvent): void {
     switch (event.key.toLowerCase()) {
       case "w": {
+        // If the console input is active we don't want the player to dash if when user types a 'w'
+        if (document.activeElement?.tagName === "WEB-CONSOLE") return;
+
         const lastDashTime = GameStore.getState().lastDashTime;
         if (lastDashTime > Date.now() - this.dashDelay) return;
 
