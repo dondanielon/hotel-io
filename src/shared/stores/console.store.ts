@@ -9,3 +9,6 @@ export const ConsoleStore = new Store<ConsoleState>({
   history: [],
   isOpen: false,
 });
+
+// Enable notify on update
+ConsoleStore.notifyOnUpdate = true;
