@@ -6,7 +6,7 @@ interface Command {
   description: string;
 }
 
-export class WebConsole extends HTMLElement {
+export class UIWebConsole extends HTMLElement {
   private unsubscribe?: () => void;
   private output: HTMLDivElement | null = null;
   private input: HTMLInputElement | null = null;
@@ -94,7 +94,7 @@ export class WebConsole extends HTMLElement {
           this.addOutputLine(result);
         }
       } catch (error: any) {
-        this.addOutputLine(`Error: ${error.message}`, "error-line");
+        this.addOutputLine(`Error: ${error.message}`, "output-line error");
       }
     }
   }
@@ -238,10 +238,8 @@ export class WebConsole extends HTMLElement {
         }
 
         .console-body {
-          padding: 12px;
           display: flex;
           flex-direction: column;
-          gap: 8px;
         }
 
         .console-output {
@@ -249,11 +247,11 @@ export class WebConsole extends HTMLElement {
           overflow-y: auto;
           display: flex;
           flex-direction: column;
-          gap: 4px;
-          padding: 8px;
+          gap: 2px;
+          padding: 5px;
           background: rgba(1, 4, 9, 0.2);
           border-radius: 4px;
-          font-size: 13px;
+          font-size: 12px;
           line-height: 1.2;
         }
 
@@ -276,7 +274,7 @@ export class WebConsole extends HTMLElement {
         }
 
         .output-line {
-          font-size: 13px;
+          font-size: 12px;
           color: #58a6ff;
           word-break: break-word;
           white-space: pre-wrap;
@@ -312,7 +310,7 @@ export class WebConsole extends HTMLElement {
 
         .prompt {
           color: #58a6ff;
-          font-size: 14px;
+          font-size: 12px;
           margin-right: 8px;
           font-weight: 600;
           user-select: none;
@@ -324,7 +322,7 @@ export class WebConsole extends HTMLElement {
           color: #58a6ff;
           outline: none;
           width: 100%;
-          font-size: 14px;
+          font-size: 12px;
           font-family: inherit;
         }
 
