@@ -4,6 +4,8 @@ export class Store<T extends object> {
   private state: T;
   private listeners: Set<Listener<T>>;
 
+  public notifyOnUpdate = false;
+
   constructor(initialState: T) {
     this.state = initialState;
     this.listeners = new Set();
@@ -29,7 +31,10 @@ export class Store<T extends object> {
 
   update<K extends keyof T>(key: K, value: T[K]): void {
     this.setState({ [key]: value } as unknown as Partial<T>);
-    this.notify();
+
+    if (this.notifyOnUpdate) {
+      this.notify();
+    }
   }
 
   reset(initialState: T): void {
