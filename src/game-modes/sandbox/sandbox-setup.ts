@@ -17,8 +17,8 @@ import { Collision2DComponent } from "@root/components/collision-2d.component";
 import { CollisionSystem } from "@root/systems/core/collision-2d.system";
 import { CollisionLayer, CollisionShape2D } from "@root/shared/enums/game.enums";
 import { CollisionConstants } from "@root/shared/constants/collision.constants";
-import { TerrainEditorSystem } from "@root/systems/gameplay/terrain-editor.system";
 import { WorldEditorSystem } from "@root/systems/core/world-editor.system";
+import { SettingsConstants } from "@root/shared/constants/settings.constants";
 //import { toonShader } from "./sandbox-shaders";
 
 interface ISetupTerrainConfig {
@@ -44,7 +44,6 @@ export function setupSystems(world: ECSYThreeWorld): void {
     .registerSystem(AnimationSystem)
     .registerSystem(PlayerInputSystem)
     .registerSystem(CollisionSystem)
-    .registerSystem(TerrainEditorSystem)
     .registerSystem(WorldEditorSystem)
     .registerSystem(WebGLRendererSystem, { priority: 999 });
   // Multiplayer in future version
@@ -71,6 +70,7 @@ export function setupCamera(camera: THREE.PerspectiveCamera, scene: THREE.Scene)
 export function setupRenderer(renderer: THREE.WebGLRenderer): void {
   renderer.shadowMap.enabled = true;
   renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+  renderer.domElement.id = SettingsConstants.SandboxMainCanvasId;
   document.body.appendChild(renderer.domElement);
 }
 

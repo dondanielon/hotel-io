@@ -4,6 +4,7 @@ import * as THREE from "three";
 import { ECSYThreeEntity } from "ecsy-three";
 
 export interface GameState {
+  gameMode: "sandbox" | "multiplayer" | null;
   mappedPlayers: Record<string, number>;
   mouseLocation: THREE.Vector2;
   requestGameList: boolean;
@@ -18,6 +19,7 @@ export interface GameState {
 }
 
 export const GameStore = new Store<GameState>({
+  gameMode: null,
   mappedPlayers: {},
   mouseLocation: new THREE.Vector2(-1, 1), // top left corner
   requestGameList: false,

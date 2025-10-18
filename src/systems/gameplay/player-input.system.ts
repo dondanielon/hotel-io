@@ -6,6 +6,7 @@ import { MovementComponent } from "@root/components/movement.component";
 import { InputConstants } from "@shared/constants/input.constants";
 import { PlayerConstants } from "@root/shared/constants/player.constants";
 import { ConsoleStore } from "@root/shared/stores/console.store";
+import { GameUtils } from "@root/shared/utils/game.utils";
 
 /**
  * System responsible for handling player input and movement
@@ -27,6 +28,7 @@ export class PlayerInputSystem extends ECSYThreeSystem {
   init(): void {
     window.addEventListener("contextmenu", this.onRightClick.bind(this));
     window.addEventListener("keypress", this.onKeyDown.bind(this));
+    window.addEventListener("click", this.onLeftClick.bind(this));
   }
 
   execute(delta: number, _time: number): void {
@@ -47,8 +49,14 @@ export class PlayerInputSystem extends ECSYThreeSystem {
     }
   }
 
+  private onLeftClick(e: MouseEvent): void {
+    console.log(e);
+  }
+
   private onRightClick(e: MouseEvent): void {
     e.preventDefault();
+
+    if (!GameUtils.isClickingInMainCanvas(e.target)) return;
 
     const playerEntity = GameStore.getState().playerEntity;
     const wireframeEntity = GameStore.getState().playerWireframe;
@@ -92,7 +100,6 @@ export class PlayerInputSystem extends ECSYThreeSystem {
   private onKeyDown(event: KeyboardEvent): void {
     switch (event.key.toLowerCase()) {
       case "w": {
-        // If the console input is active we don't want the player to dash if when user types a 'w'
         if (document.activeElement?.tagName === "WEB-CONSOLE") return;
 
         const lastDashTime = GameStore.getState().lastDashTime;
@@ -144,6 +151,8 @@ export class PlayerInputSystem extends ECSYThreeSystem {
       }
       // For now I will use this key for toggle the wireframe and axes helper on objects
       case "+": {
+        if (document.activeElement?.tagName === "WEB-CONSOLE") return;
+
         // This is only working with the main character wireframe for now
         // TODO: Let's add something to handle the wireframe on other objects
         const wireframeEntity = GameStore.getState().playerWireframe;
@@ -161,6 +170,7 @@ export class PlayerInputSystem extends ECSYThreeSystem {
       }
       case "`": {
         event.preventDefault();
+
         ConsoleStore.update("isOpen", !ConsoleStore.getState().isOpen);
         const consoleContainer = document.getElementById("console-container");
 

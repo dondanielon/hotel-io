@@ -13,11 +13,14 @@ import {
   setupSystems,
   setupTerrain,
 } from "./sandbox-setup";
+import { GameStore } from "@root/shared/stores/game.store";
 
 export class Sandbox {
   private world: ECSYThreeWorld;
 
   constructor() {
+    GameStore.update("gameMode", "sandbox");
+
     const renderer = new THREE.WebGLRenderer({ antialias: true });
     const clock = new THREE.Clock();
     const scene = new THREE.Scene();
@@ -36,24 +39,8 @@ export class Sandbox {
     renderer.setAnimationLoop(() => {
       stats?.begin();
 
-      //const time = performance.now() * 0.001;
-      //
-      //try {
-      //  scene.traverse((child) => {
-      //    if (
-      //      child instanceof THREE.Mesh &&
-      //      child.material instanceof THREE.ShaderMaterial &&
-      //      child.material.uniforms
-      //    ) {
-      //      child.material.uniforms.uTime.value = time;
-      //      child.material.uniforms.uViewPosition.value.copy(camera.position);
-      //    }
-      //  });
-      //} catch (error) {
-      //  console.error("Error in render loop: ", error);
-      //}
-
       this.world.execute(clock.getDelta(), clock.elapsedTime);
+
       stats?.end();
     });
 
