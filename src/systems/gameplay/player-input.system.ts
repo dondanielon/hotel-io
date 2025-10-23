@@ -50,7 +50,7 @@ export class PlayerInputSystem extends ECSYThreeSystem {
   }
 
   private onLeftClick(e: MouseEvent): void {
-    console.log(e);
+    if (!GameUtils.isClickingInMainCanvas(e.target)) return;
   }
 
   private onRightClick(e: MouseEvent): void {
@@ -172,7 +172,7 @@ export class PlayerInputSystem extends ECSYThreeSystem {
         event.preventDefault();
 
         ConsoleStore.update("isOpen", !ConsoleStore.getState().isOpen);
-        const consoleContainer = document.getElementById("console-container");
+        const consoleContainer = document.getElementById("web-console-container");
 
         if (consoleContainer) {
           if (ConsoleStore.getState().isOpen) {

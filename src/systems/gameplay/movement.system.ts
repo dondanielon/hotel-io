@@ -1,6 +1,5 @@
 import * as THREE from "three";
 import { MovementComponent } from "@root/components/movement.component";
-import { PlayerComponent } from "@root/components/player.component";
 import { ECSYThreeSystem } from "ecsy-three";
 import { Vector3 } from "three";
 import { PlayerConstants } from "@shared/constants/player.constants";
