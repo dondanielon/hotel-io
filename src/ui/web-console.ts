@@ -1,4 +1,4 @@
-import { ConsoleStore } from "@root/shared/stores/console.store";
+import { ConsoleStore } from "@root/shared/stores";
 
 // Import templates as text
 import htmlTemplate from "./web-console.html?raw";
@@ -177,7 +177,7 @@ export class UIWebConsole extends HTMLElement {
     if (closeBtn) {
       closeBtn.addEventListener("click", () => {
         ConsoleStore.update("isOpen", !ConsoleStore.getState().isOpen);
-        const container = document.getElementById("console-container");
+        const container = document.getElementById("web-console-container");
         if (container) container.innerHTML = "";
       });
     }

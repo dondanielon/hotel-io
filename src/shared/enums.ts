@@ -1,12 +1,3 @@
-export enum GameAnimationAction {
-  TPose = "tpose",
-  Walk = "walk",
-  Run = "run",
-  Dash = "dash",
-  SwordAttack = "swordAttack",
-  Idle = "idle",
-}
-
 export enum CollisionLayer {
   TERRAIN = 1,
   PLAYER = 2,
@@ -20,4 +11,13 @@ export enum CollisionShape2D {
   CIRCLE = "circle",
   BOX = "box",
   LINE = "line",
+}
+
+export enum GameAnimationAction {
+  TPose = "tpose",
+  Walk = "walk",
+  Run = "run",
+  Dash = "dash",
+  SwordAttack = "sword-attack",
+  Idle = "idle",
 }

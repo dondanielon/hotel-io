@@ -1,4 +1,3 @@
-import { warn } from "console";
 import { defineConfig, loadEnv } from "vite";
 
 export default defineConfig(({ mode }) => {
@@ -9,7 +8,7 @@ export default defineConfig(({ mode }) => {
   return {
     assetsInclude: ["**/*.html"],
     server: {
-      port: 4200,
+      port: 3000,
     },
     build: {
       target: "esnext",
@@ -17,11 +16,10 @@ export default defineConfig(({ mode }) => {
     resolve: {
       alias: {
         "@root": "/src",
-        "@components": "/src/components",
-        "@systems": "/src/systems",
-        "@libs": "/src/libs",
+        "@objects": "/src/objects",
         "@shared": "/src/shared",
-        "@game-modes": "/src/game-modes",
+        "@ui": "/src/ui",
+        "@managers": "/src/managers",
       },
     },
     // Expose env variables to the client
