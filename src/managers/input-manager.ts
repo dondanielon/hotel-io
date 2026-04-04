@@ -1,6 +1,6 @@
 import * as THREE from "three/webgpu";
 import { assert, targetsMainCanvas } from "@shared/utils";
-import { GameStore, ConsoleStore } from "@shared/stores";
+import { GameStore } from "@shared/stores";
 import { Player } from "@objects/player";
 
 import {
@@ -11,7 +11,10 @@ import {
   INPUT_POINTER_SEGMENTS,
   PLAYER_DASH_DELAY,
   PLAYER_DASH_DURATION,
+  UI_CONSOLE_TAG_NAME,
+  UI_OBJECT_CONTEXT_MENU_TAG_NAME,
 } from "@root/shared/constants";
+import { ContextMenuAction, UIObjectContextMenu } from "@root/ui/object-context-menu";
 
 export class InputManager {
   private clickPointer: THREE.Mesh<THREE.CircleGeometry, THREE.MeshBasicMaterial> | null;
@@ -53,9 +56,26 @@ export class InputManager {
   }
 
   private leftClickHandler(event: MouseEvent): void {
-    if (!targetsMainCanvas(event.target)) {
-      return;
-    }
+    try {
+      // Ignore clicks outside the main canvas
+      if (!targetsMainCanvas(event.target)) return;
+      // If main player is moving we don't want to add
+      if (this.mainPlayer.isMoving || this.mainPlayer.isDashing) return;
+
+      const sceneIntersectionPoint = this.getSceneIntersection();
+      assert(sceneIntersectionPoint, "sceneIntersectionPoint");
+      // Block terrain object context menu during player movement
+      if (!this.mainPlayer.isMoving && !this.mainPlayer.isDashing) {
+        const objectContextMenu = document.createElement(UI_OBJECT_CONTEXT_MENU_TAG_NAME) as UIObjectContextMenu;
+        objectContextMenu.setPosition(event.clientX, event.clientY);
+        objectContextMenu.onAction((action: ContextMenuAction) => {
+          console.log("Action:", action, "on object:", sceneIntersectionPoint.object);
+          // handle actions here
+        });
+        document.body.appendChild(objectContextMenu);
+      }
+    } catch {} // Silently fail
+    return;
   }
 
   private rightClickHandler(event: MouseEvent): void {
@@ -65,8 +85,15 @@ export class InputManager {
       if (!targetsMainCanvas(event.target)) return;
       // If the player is dashing we don't want to allow them to set a new target position until the dash is complete
       if (this.mainPlayer.isDashing) return;
+      // If object context menu is open we should remove it
+      const collection = document.getElementsByTagName(UI_OBJECT_CONTEXT_MENU_TAG_NAME);
+      if (collection.length) {
+        for (const c of collection) {
+          c.remove();
+        }
+      }
 
-      const intersectionPoint = this.getTerrainIntersection(this.terrain);
+      const intersectionPoint = this.getTerrainIntersection();
       assert(intersectionPoint, "intersectionPoint");
 
       this.mainPlayer.targetPosition = intersectionPoint;
@@ -102,7 +129,7 @@ export class InputManager {
 
   private keyPressHandler(event: KeyboardEvent): void {
     const keyPressed = event.key.toLowerCase();
-    const consoleFocused = document.activeElement?.tagName === "WEB-CONSOLE";
+    const consoleFocused = document.activeElement?.tagName === UI_CONSOLE_TAG_NAME.toUpperCase();
 
     switch (keyPressed) {
       // PLAYER DASH
@@ -112,8 +139,15 @@ export class InputManager {
           // Prevent spamming dash and ensure player can only dash again after the delay
           const lastDashTimestamp = GameStore.getState().lastDashTime;
           if (this.dashCooldownActive(lastDashTimestamp)) return;
+          // If terrain object context menu is open we should remove it
+          const collection = document.getElementsByTagName(UI_OBJECT_CONTEXT_MENU_TAG_NAME);
+          if (collection.length) {
+            for (const c of collection) {
+              c.remove();
+            }
+          }
 
-          const intersectionPoint = this.getTerrainIntersection(this.terrain);
+          const intersectionPoint = this.getTerrainIntersection();
           assert(intersectionPoint, "intersectionPoint");
           // Calculate dash direction from player to mouse position
           const dashDirection = new THREE.Vector3()
@@ -132,19 +166,16 @@ export class InputManager {
       }
       // CONSOLE
       case "`": {
-        try {
-          event.preventDefault();
-
-          ConsoleStore.update("isOpen", !ConsoleStore.getState().isOpen);
-
-          const container = document.getElementById("web-console-container");
-          assert(container, "container", true);
-
-          ConsoleStore.getState().isOpen
-            ? container.appendChild(document.createElement("web-console"))
-            : (container.innerHTML = "");
-        } catch {} // Silently fail
-        return;
+        event.preventDefault();
+        const collenction = document.getElementsByTagName(UI_CONSOLE_TAG_NAME);
+        if (collenction.length) {
+          for (const c of collenction) {
+            c.remove();
+          }
+        } else {
+          const console = document.createElement(UI_CONSOLE_TAG_NAME);
+          document.body.appendChild(console);
+        }
       }
     }
   }
@@ -165,11 +196,11 @@ export class InputManager {
     (window as any).mouseLocation = mouseVec;
   }
 
-  private getTerrainIntersection(terrain: THREE.Mesh): THREE.Vector3 | null {
+  private getTerrainIntersection(): THREE.Vector3 | null {
     const mouseLocation = GameStore.getState().mouseLocation;
 
     this.raycaster.setFromCamera(mouseLocation, this.camera);
-    const intersects = this.raycaster.intersectObject(terrain);
+    const intersects = this.raycaster.intersectObject(this.terrain);
 
     if (intersects.length > 0) {
       const point = intersects[0].point;
@@ -179,6 +210,14 @@ export class InputManager {
     }
 
     return null;
+  }
+
+  private getSceneIntersection(): THREE.Intersection | null {
+    const mouseLocation = GameStore.getState().mouseLocation;
+    this.raycaster.setFromCamera(mouseLocation, this.camera);
+    const intersects = this.raycaster.intersectObjects(this.scene.children, true);
+
+    return intersects.find((i) => i.object !== this.terrain && i.object !== this.clickPointer) ?? null;
   }
 
   private dashCooldownActive(timestamp: number): boolean {

@@ -11,7 +11,6 @@ export interface PlayerAnimations {
 
 export interface ConsoleState {
   history: string[];
-  isOpen: boolean;
 }
 
 export interface GameState {

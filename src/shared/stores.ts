@@ -19,5 +19,4 @@ export const GameStore = new StoreManager<GameState>({
 
 export const ConsoleStore = new StoreManager<ConsoleState>({
   history: [],
-  isOpen: false,
 });

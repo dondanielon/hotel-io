@@ -1,5 +1,3 @@
-import { ConsoleStore } from "@root/shared/stores";
-
 // Import templates as text
 import htmlTemplate from "./web-console.html?raw";
 import cssTemplate from "./web-console.css?raw";
@@ -11,7 +9,6 @@ interface Command {
 }
 
 export class UIWebConsole extends HTMLElement {
-  private unsubscribe?: () => void;
   private output: HTMLDivElement | null = null;
   private input: HTMLInputElement | null = null;
   private commandHistory: string[] = [];
@@ -23,14 +20,9 @@ export class UIWebConsole extends HTMLElement {
   }
 
   connectedCallback(): void {
-    this.unsubscribe = ConsoleStore.subscribe(() => this.render());
     this.render();
     this.setupCommands();
     this.setupEventListeners();
-  }
-
-  disconnectedCallback(): void {
-    this.unsubscribe?.();
   }
 
   public addCommand(name: string, cmd: Command) {
@@ -176,9 +168,7 @@ export class UIWebConsole extends HTMLElement {
     const closeBtn = this.shadowRoot.querySelector("#btn-close");
     if (closeBtn) {
       closeBtn.addEventListener("click", () => {
-        ConsoleStore.update("isOpen", !ConsoleStore.getState().isOpen);
-        const container = document.getElementById("web-console-container");
-        if (container) container.innerHTML = "";
+        this.remove();
       });
     }
 
