@@ -39,6 +39,7 @@ export class Sandbox {
   }
 
   public async init(): Promise<void> {
+    GameStore.update("scene", this.scene);
     GameStore.update("gameMode", "sandbox");
     printInfoMessage();
     // Sync/Async core setup

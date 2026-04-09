@@ -1,3 +1,8 @@
+export enum Action {
+  Default = "",
+  EditorPlacingItem = "editor-placing-item",
+}
+
 export enum CollisionLayer {
   TERRAIN = 1,
   PLAYER = 2,
@@ -20,4 +25,9 @@ export enum GameAnimationAction {
   Dash = "dash",
   SwordAttack = "sword-attack",
   Idle = "idle",
+}
+
+export enum KeyPressed {
+  PlayerDash = "w",
+  Console = "`",
 }

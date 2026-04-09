@@ -1,6 +1,11 @@
 // Import templates as text
 import htmlTemplate from "./web-console.html?raw";
 import cssTemplate from "./web-console.css?raw";
+import { Box } from "@root/objects/box";
+import { GameStore } from "@root/shared/stores";
+import { GameObject } from "@root/objects/game-object";
+import { Action } from "@root/shared/enums";
+import { Cylinder } from "@root/objects/cylinder";
 
 interface Command {
   name: string;
@@ -53,6 +58,40 @@ export class UIWebConsole extends HTMLElement {
           this.output?.replaceChildren();
         },
       },
+      {
+        name: "place-item",
+        description: "Places an item on the terrain",
+        execute: (args) => {
+          const itemId = args?.[0];
+          if (!itemId) return "Missing item id. (ex: place-item box)";
+
+          const scene = GameStore.getState().scene;
+          if (!scene) return "Error: scene is not defined in game state";
+
+          const currentObjectToPlace = GameStore.getState().objectToPlace;
+          let objectToPlace: GameObject | null = null;
+
+          if (currentObjectToPlace) {
+            scene.remove(currentObjectToPlace.mesh);
+            GameStore.update("objectToPlace", null);
+          }
+
+          if (itemId === "box") {
+            objectToPlace = new Box();
+            objectToPlace.mesh.rotation.x = -Math.PI / 2;
+          }
+
+          if (itemId === "cyl") {
+            objectToPlace = new Cylinder();
+          }
+
+          if (objectToPlace) {
+            GameStore.setState({ action: Action.EditorPlacingItem, objectToPlace });
+            scene.add(objectToPlace.mesh);
+            this.remove();
+          }
+        },
+      },
     ];
 
     commands.forEach((cmd) => this.commands.set(cmd.name, cmd));
@@ -77,13 +116,14 @@ export class UIWebConsole extends HTMLElement {
     this.commandHistory.push(cmdText);
     this.addOutputLine(`hotel-io: ${cmdText}`, "output-line");
 
-    const command = this.commands.get(cmdText);
+    const [commandName, ...args] = cmdText.split(" ");
+    const command = this.commands.get(commandName);
 
     if (!command) {
       this.addOutputLine(`command not found: ${cmdText}`, "output-line");
     } else {
       try {
-        const result = await command.execute();
+        const result = await command.execute(args);
         if (result) {
           this.addOutputLine(result);
         }

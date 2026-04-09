@@ -2,6 +2,8 @@ import * as THREE from "three/webgpu";
 import { assert, targetsMainCanvas } from "@shared/utils";
 import { GameStore } from "@shared/stores";
 import { Player } from "@objects/player";
+import { ContextMenuAction, UIObjectContextMenu } from "@ui/object-context-menu";
+import { Action, KeyPressed } from "@shared/enums";
 
 import {
   INPUT_POINTER_COLOR,
@@ -14,7 +16,6 @@ import {
   UI_CONSOLE_TAG_NAME,
   UI_OBJECT_CONTEXT_MENU_TAG_NAME,
 } from "@root/shared/constants";
-import { ContextMenuAction, UIObjectContextMenu } from "@root/ui/object-context-menu";
 
 export class InputManager {
   private clickPointer: THREE.Mesh<THREE.CircleGeometry, THREE.MeshBasicMaterial> | null;
@@ -40,39 +41,37 @@ export class InputManager {
   }
 
   public update(delta: number, _elapsed: number): void {
-    if (!this.clickPointer) return;
-
-    this.clickPointerTimer -= delta;
-
-    if (this.clickPointerTimer <= 0) {
-      this.clickPointer.clear();
-      this.scene.remove(this.clickPointer);
-      this.clickPointer = null;
-      this.clickPointerTimer = 0;
-    } else {
-      const opacity = Math.max(0, this.clickPointerTimer / INPUT_POINTER_DURATION);
-      this.clickPointer.material.opacity = opacity;
-    }
+    this.handleClickPointer(delta);
+    this.handleObjectEditorLocation();
   }
 
   private leftClickHandler(event: MouseEvent): void {
     try {
       // Ignore clicks outside the main canvas
       if (!targetsMainCanvas(event.target)) return;
-      // If main player is moving we don't want to add
+      // Ignore clicks if main player is in movement
       if (this.mainPlayer.isMoving || this.mainPlayer.isDashing) return;
 
-      const sceneIntersectionPoint = this.getSceneIntersection();
-      assert(sceneIntersectionPoint, "sceneIntersectionPoint");
-      // Block terrain object context menu during player movement
-      if (!this.mainPlayer.isMoving && !this.mainPlayer.isDashing) {
-        const objectContextMenu = document.createElement(UI_OBJECT_CONTEXT_MENU_TAG_NAME) as UIObjectContextMenu;
-        objectContextMenu.setPosition(event.clientX, event.clientY);
-        objectContextMenu.onAction((action: ContextMenuAction) => {
-          console.log("Action:", action, "on object:", sceneIntersectionPoint.object);
-          // handle actions here
-        });
-        document.body.appendChild(objectContextMenu);
+      const currAction = GameStore.getState().action;
+
+      if (currAction === Action.Default) {
+        const sceneIntersectionPoint = this.getSceneIntersection();
+        assert(sceneIntersectionPoint, "sceneIntersectionPoint");
+        // Block terrain object context menu during player movement
+        if (!this.mainPlayer.isMoving && !this.mainPlayer.isDashing) {
+          const objectContextMenu = document.createElement(UI_OBJECT_CONTEXT_MENU_TAG_NAME) as UIObjectContextMenu;
+          objectContextMenu.setPosition(event.clientX, event.clientY);
+          objectContextMenu.onAction((action: ContextMenuAction) => {
+            console.log("Action:", action, "on object:", sceneIntersectionPoint.object);
+            // handle actions here
+          });
+          document.body.appendChild(objectContextMenu);
+        }
+      }
+
+      if (currAction === Action.EditorPlacingItem) {
+        GameStore.update("objectToPlace", null);
+        GameStore.update("action", Action.Default);
       }
     } catch {} // Silently fail
     return;
@@ -83,9 +82,9 @@ export class InputManager {
       event.preventDefault();
       // Ignore clicks outside the main canvas
       if (!targetsMainCanvas(event.target)) return;
-      // If the player is dashing we don't want to allow them to set a new target position until the dash is complete
+      // Don't allow to set a new target position until the dash is complete
       if (this.mainPlayer.isDashing) return;
-      // If object context menu is open we should remove it
+
       const collection = document.getElementsByTagName(UI_OBJECT_CONTEXT_MENU_TAG_NAME);
       if (collection.length) {
         for (const c of collection) {
@@ -98,6 +97,7 @@ export class InputManager {
 
       this.mainPlayer.targetPosition = intersectionPoint;
       this.mainPlayer.isMoving = true;
+
       // Clean up previous click indicator before placing a new one
       if (this.clickPointer) {
         this.clickPointer.clear();
@@ -105,7 +105,7 @@ export class InputManager {
         this.clickPointer = null;
         this.clickPointerTimer = 0;
       }
-      // Add click pointer visual
+
       const geometry = new THREE.CircleGeometry(INPUT_POINTER_RADIUS, INPUT_POINTER_SEGMENTS);
       const material = new THREE.MeshBasicMaterial({
         color: INPUT_POINTER_COLOR,
@@ -128,44 +128,11 @@ export class InputManager {
   }
 
   private keyPressHandler(event: KeyboardEvent): void {
-    const keyPressed = event.key.toLowerCase();
-    const consoleFocused = document.activeElement?.tagName === UI_CONSOLE_TAG_NAME.toUpperCase();
+    try {
+      const keyPressed = event.key.toLowerCase() as KeyPressed;
+      const consoleFocused = document.activeElement?.tagName === UI_CONSOLE_TAG_NAME.toUpperCase();
 
-    switch (keyPressed) {
-      // PLAYER DASH
-      case "w": {
-        try {
-          if (consoleFocused) return;
-          // Prevent spamming dash and ensure player can only dash again after the delay
-          const lastDashTimestamp = GameStore.getState().lastDashTime;
-          if (this.dashCooldownActive(lastDashTimestamp)) return;
-          // If terrain object context menu is open we should remove it
-          const collection = document.getElementsByTagName(UI_OBJECT_CONTEXT_MENU_TAG_NAME);
-          if (collection.length) {
-            for (const c of collection) {
-              c.remove();
-            }
-          }
-
-          const intersectionPoint = this.getTerrainIntersection();
-          assert(intersectionPoint, "intersectionPoint");
-          // Calculate dash direction from player to mouse position
-          const dashDirection = new THREE.Vector3()
-            .subVectors(intersectionPoint, this.mainPlayer.getPosition())
-            .normalize();
-          // Set up dash properties, clear target position and stop normal movement
-          this.mainPlayer.isDashing = true;
-          this.mainPlayer.dashDirection = dashDirection;
-          this.mainPlayer.dashTimer = PLAYER_DASH_DURATION;
-          this.mainPlayer.isMoving = false;
-          this.mainPlayer.targetPosition = null;
-          // Store the last dash time to enforce delay between dashes
-          GameStore.update("lastDashTime", Date.now());
-        } catch {} // Silently fail
-        return;
-      }
-      // CONSOLE
-      case "`": {
+      if (keyPressed === KeyPressed.Console) {
         event.preventDefault();
         const collenction = document.getElementsByTagName(UI_CONSOLE_TAG_NAME);
         if (collenction.length) {
@@ -176,8 +143,41 @@ export class InputManager {
           const console = document.createElement(UI_CONSOLE_TAG_NAME);
           document.body.appendChild(console);
         }
+        return;
       }
-    }
+
+      if (GameStore.getState().action !== Action.Default) return;
+
+      if (keyPressed === KeyPressed.PlayerDash) {
+        if (consoleFocused) return;
+        // Prevent spamming dash and ensure player can only dash again after the delay
+        if (this.dashCooldownActive(GameStore.getState().lastDashTime)) return;
+
+        const collection = document.getElementsByTagName(UI_OBJECT_CONTEXT_MENU_TAG_NAME);
+        if (collection.length) {
+          // Defensive cleanup — ensure no stale menus remain before opening a new one
+          for (const c of collection) {
+            c.remove();
+          }
+        }
+
+        const intersectionPoint = this.getTerrainIntersection();
+        assert(intersectionPoint, "intersectionPoint");
+
+        const dashDirection = new THREE.Vector3()
+          .subVectors(intersectionPoint, this.mainPlayer.getPosition())
+          .normalize();
+        // Set up dash properties, clear target position and stop normal movement
+        this.mainPlayer.isDashing = true;
+        this.mainPlayer.dashDirection = dashDirection;
+        this.mainPlayer.dashTimer = PLAYER_DASH_DURATION;
+        this.mainPlayer.isMoving = false;
+        this.mainPlayer.targetPosition = null;
+
+        GameStore.update("lastDashTime", Date.now());
+        return;
+      }
+    } catch {} // Silently fail
   }
 
   private resizeHandler(_event: UIEvent): void {
@@ -204,8 +204,7 @@ export class InputManager {
 
     if (intersects.length > 0) {
       const point = intersects[0].point;
-      point.y = 0;
-
+      point.y = 0; // Set Y to 0 just to avoid issues :D
       return point;
     }
 
@@ -222,5 +221,35 @@ export class InputManager {
 
   private dashCooldownActive(timestamp: number): boolean {
     return timestamp > Date.now() - PLAYER_DASH_DELAY;
+  }
+
+  private handleClickPointer(delta: number): void {
+    if (this.clickPointer) {
+      this.clickPointerTimer -= delta;
+
+      if (this.clickPointerTimer <= 0) {
+        this.clickPointer.clear();
+        this.scene.remove(this.clickPointer);
+        this.clickPointer = null;
+        this.clickPointerTimer = 0;
+      } else {
+        const opacity = Math.max(0, this.clickPointerTimer / INPUT_POINTER_DURATION);
+        this.clickPointer.material.opacity = opacity;
+      }
+    }
+  }
+
+  private handleObjectEditorLocation(): void {
+    try {
+      const { objectToPlace, action } = GameStore.getState();
+      if (objectToPlace && action === Action.EditorPlacingItem) {
+        const intersectionPoint = this.getTerrainIntersection();
+        assert(intersectionPoint, "intersectionPoint");
+
+        objectToPlace.mesh.position.copy(intersectionPoint);
+        objectToPlace.mesh.position.y = 1;
+      }
+    } catch {} // Silently fail
+    return;
   }
 }

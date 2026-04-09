@@ -1,19 +1,20 @@
 import * as THREE from "three/webgpu";
 import { GLTF } from "three/examples/jsm/Addons.js";
 import { PLAYER_SPEED } from "@shared/constants";
+import { GameObject } from "@objects/game-object";
 
-export class Player {
+export class Player extends GameObject {
   public dashDirection: THREE.Vector3 | null;
   public dashTimer: number;
   public id: string;
   public isDashing: boolean;
   public isMoving: boolean;
   public model: GLTF;
-  public mesh: THREE.Group;
   public speed: number;
   public targetPosition: THREE.Vector3 | null;
 
   constructor(model: GLTF, mesh: THREE.Group) {
+    super();
     this.dashDirection = null;
     this.dashTimer = 0;
     this.id = crypto.randomUUID();
@@ -29,11 +30,7 @@ export class Player {
     this.mesh.castShadow = true;
   }
 
-  public getPosition(): THREE.Vector3 {
-    return this.mesh.position;
-  }
-
-  public updatePosition(newPosition: THREE.Vector3): void {
+  public updatePosition(newPosition: THREE.Vector3Like): void {
     this.mesh.position.copy(newPosition);
   }
 
