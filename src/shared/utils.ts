@@ -1,6 +1,11 @@
 import { GameStore } from "@root/shared/stores";
-import { SETTING_SANDBOX_MAIN_CANVAS_ID } from "@shared/constants";
 import { version } from "../../package.json";
+
+import {
+  SETTING_SANDBOX_MAIN_CANVAS_ID,
+  UI_CONSOLE_TAG_NAME,
+  UI_OBJECT_CONTEXT_MENU_TAG_NAME,
+} from "@shared/constants";
 
 export function printInfoMessage(): void {
   console.log(`\x1b[32m
@@ -35,4 +40,23 @@ export function targetsMainCanvas(target: EventTarget | null): boolean {
   if (currentGameMode === "sandbox" && targetId === SETTING_SANDBOX_MAIN_CANVAS_ID) return true;
 
   return false;
+}
+
+export function removeOrAppendConsole(): void {
+  const collection = document.getElementsByTagName(UI_CONSOLE_TAG_NAME);
+  if (collection[0]) {
+    collection[0].remove();
+  } else {
+    const console = document.createElement(UI_CONSOLE_TAG_NAME);
+    document.body.appendChild(console);
+  }
+}
+
+export function removeObjectContextMenuIfPresent(): void {
+  const collection = document.getElementsByTagName(UI_OBJECT_CONTEXT_MENU_TAG_NAME);
+  if (collection.length) {
+    for (const element of collection) {
+      element.remove();
+    }
+  }
 }

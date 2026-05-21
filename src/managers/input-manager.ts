@@ -1,5 +1,5 @@
 import * as THREE from "three/webgpu";
-import { assert, targetsMainCanvas } from "@shared/utils";
+import { assert, removeObjectContextMenuIfPresent, targetsMainCanvas, removeOrAppendConsole } from "@shared/utils";
 import { GameStore } from "@shared/stores";
 import { Player } from "@objects/player";
 import { ContextMenuAction, UIObjectContextMenu } from "@ui/object-context-menu";
@@ -57,16 +57,14 @@ export class InputManager {
       if (currAction === Action.Default) {
         const sceneIntersectionPoint = this.getSceneIntersection();
         assert(sceneIntersectionPoint, "sceneIntersectionPoint");
-        // Block terrain object context menu during player movement
-        if (!this.mainPlayer.isMoving && !this.mainPlayer.isDashing) {
-          const objectContextMenu = document.createElement(UI_OBJECT_CONTEXT_MENU_TAG_NAME) as UIObjectContextMenu;
-          objectContextMenu.setPosition(event.clientX, event.clientY);
-          objectContextMenu.onAction((action: ContextMenuAction) => {
-            console.log("Action:", action, "on object:", sceneIntersectionPoint.object);
-            // handle actions here
-          });
-          document.body.appendChild(objectContextMenu);
-        }
+
+        const objectContextMenu = document.createElement(UI_OBJECT_CONTEXT_MENU_TAG_NAME) as UIObjectContextMenu;
+        objectContextMenu.setPosition(event.clientX, event.clientY);
+        objectContextMenu.onAction((action: ContextMenuAction) => {
+          console.log("Action:", action, "on object:", sceneIntersectionPoint.object);
+          // handle actions here
+        });
+        document.body.appendChild(objectContextMenu);
       }
 
       if (currAction === Action.EditorPlacingItem) {
@@ -85,12 +83,7 @@ export class InputManager {
       // Don't allow to set a new target position until the dash is complete
       if (this.mainPlayer.isDashing) return;
 
-      const collection = document.getElementsByTagName(UI_OBJECT_CONTEXT_MENU_TAG_NAME);
-      if (collection.length) {
-        for (const c of collection) {
-          c.remove();
-        }
-      }
+      removeObjectContextMenuIfPresent();
 
       const intersectionPoint = this.getTerrainIntersection();
       assert(intersectionPoint, "intersectionPoint");
@@ -134,15 +127,7 @@ export class InputManager {
 
       if (keyPressed === KeyPressed.Console) {
         event.preventDefault();
-        const collenction = document.getElementsByTagName(UI_CONSOLE_TAG_NAME);
-        if (collenction.length) {
-          for (const c of collenction) {
-            c.remove();
-          }
-        } else {
-          const console = document.createElement(UI_CONSOLE_TAG_NAME);
-          document.body.appendChild(console);
-        }
+        removeOrAppendConsole();
         return;
       }
 
@@ -150,16 +135,10 @@ export class InputManager {
 
       if (keyPressed === KeyPressed.PlayerDash) {
         if (consoleFocused) return;
+        removeObjectContextMenuIfPresent();
+
         // Prevent spamming dash and ensure player can only dash again after the delay
         if (this.dashCooldownActive(GameStore.getState().lastDashTime)) return;
-
-        const collection = document.getElementsByTagName(UI_OBJECT_CONTEXT_MENU_TAG_NAME);
-        if (collection.length) {
-          // Defensive cleanup — ensure no stale menus remain before opening a new one
-          for (const c of collection) {
-            c.remove();
-          }
-        }
 
         const intersectionPoint = this.getTerrainIntersection();
         assert(intersectionPoint, "intersectionPoint");
