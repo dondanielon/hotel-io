@@ -72,6 +72,7 @@ export class UIWebConsole extends HTMLElement {
           let objectToPlace: GameObject | null = null;
 
           if (currentObjectToPlace) {
+            currentObjectToPlace.mesh.clear();
             scene.remove(currentObjectToPlace.mesh);
             GameStore.update("objectToPlace", null);
           }

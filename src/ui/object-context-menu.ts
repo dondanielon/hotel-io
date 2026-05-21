@@ -36,8 +36,10 @@ export class UIObjectContextMenu extends HTMLElement {
       });
     });
 
-    // Close on outside click
+    // Defer listener registration to next event loop cycle, preventing the current
+    // click event from bubbling up to window and immediately closing the menu.
     setTimeout(() => {
+      // Close on outside click
       window.addEventListener("click", () => this.remove(), { once: true });
     });
   }
