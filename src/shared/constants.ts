@@ -6,7 +6,7 @@ export const CAMERA_FOV = 40;
 export const CAMERA_NEAR_VIEW = 0.1;
 export const CAMERA_X_POSITION_ADD = 0;
 export const CAMERA_Y_POSITION_ADD = 15;
-export const CAMERA_Z_POSITION_ADD = 10;
+export const CAMERA_Z_POSITION_ADD = 15;
 
 export const COLLISION_RADIUS_PLAYER = 0.25;
 export const COLLISION_RADIUS_S_ENEMY = 0.4;

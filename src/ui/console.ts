@@ -1,4 +1,3 @@
-// Import templates as text
 import htmlTemplate from "./console.html?raw";
 import cssTemplate from "./console.css?raw";
 import { Box } from "@root/objects/box";
@@ -13,8 +12,16 @@ const LOCAL_STORAGE_OUTPUT_KEY = "console-output";
 type LogType = "info" | "warn" | "err" | "cmd" | "ok";
 type CommandResult = string | LogLine | LogLine[] | void;
 
+enum LogLevel {
+  Info = "INFO",
+  Warning = "WARN",
+  Error = "ERR",
+  Command = "CMD",
+  Ok = "OK",
+}
+
 interface LogLine {
-  lv: string;
+  lv: LogLevel;
   type: LogType;
   msg: string;
   ts?: string;
@@ -67,18 +74,18 @@ export class UIConsole extends HTMLElement {
     const commands: Command[] = [
       {
         name: "/help",
-        description: "Show list of available commands",
+        description: "show list of available commands",
         execute: () => {
           const list = Array.from(this.commands.values())
             .map((cmd) => `${cmd.name} - ${cmd.description}`)
             .join("\n");
 
-          return `Available commands:\n${list}`;
+          return `available commands:\n${list}`;
         },
       },
       {
         name: "/clear",
-        description: "Clears console",
+        description: "clears console",
         execute: () => {
           this.output?.replaceChildren();
           this.logs = [];
@@ -87,7 +94,7 @@ export class UIConsole extends HTMLElement {
       },
       {
         name: "/clear-command-history",
-        description: "Clears command history",
+        description: "clears command history",
         execute: () => {
           this.commandHistory = [];
           localStorage.removeItem(LOCAL_STORAGE_COMMAND_HISTORY_KEY);
@@ -95,13 +102,13 @@ export class UIConsole extends HTMLElement {
       },
       {
         name: "/place-item",
-        description: "Places an item on the terrain",
+        description: "places an item on the terrain",
         execute: (args) => {
           const itemId = args?.[0];
-          if (!itemId) return "Missing item id. (ex: place-item box)";
+          if (!itemId) return "missing item id. (ex: place-item box)";
 
           const scene = GameStore.getState().scene;
-          if (!scene) return "Error: scene is not defined in game state";
+          if (!scene) return "error: scene is not defined in game state";
 
           const currentObjectToPlace = GameStore.getState().objectToPlace;
           let objectToPlace: GameObject | null = null;
@@ -191,13 +198,13 @@ export class UIConsole extends HTMLElement {
     if (!cmdText) return;
 
     this.input.value = "";
-    this.addOutputLine({ lv: "CMD", type: "cmd", msg: `> ${cmdText}` });
+    this.addOutputLine({ lv: LogLevel.Command, type: "cmd", msg: `> ${cmdText}` });
 
     const [commandName, ...args] = cmdText.split(" ");
     const command = this.commands.get(commandName);
 
     if (!command) {
-      this.addOutputLine({ lv: "ERR", type: "err", msg: `unknown command: ${cmdText}. try /help` });
+      this.addOutputLine({ lv: LogLevel.Warning, type: "warn", msg: `unknown command: ${cmdText}. try /help` });
       return;
     }
 
@@ -212,7 +219,7 @@ export class UIConsole extends HTMLElement {
         this.addOutputLine(result);
       }
     } catch (error: any) {
-      this.addOutputLine({ lv: "ERR", type: "err", msg: `error: ${error.message}` });
+      this.addOutputLine({ lv: LogLevel.Error, type: "err", msg: `error: ${error.message}` });
     }
   }
 
@@ -249,7 +256,7 @@ export class UIConsole extends HTMLElement {
   private addOutputLine(line: LogLine | string) {
     const log: LogLine =
       typeof line === "string"
-        ? { lv: "INFO", type: "info", msg: line, ts: new Date().toTimeString().slice(0, 8) }
+        ? { lv: LogLevel.Info, type: "info", msg: line, ts: new Date().toTimeString().slice(0, 8) }
         : { ...line, ts: line.ts || new Date().toTimeString().slice(0, 8) };
 
     this.logs.push(log);
