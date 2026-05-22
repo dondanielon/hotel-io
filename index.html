@@ -5,17 +5,92 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap" rel="stylesheet" />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;600;700;800;900&display=swap"
+      rel="stylesheet"
+    />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800;900&display=swap"
+      rel="stylesheet"
+    />
+    <link
+      href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600;700;800;900&display=swap"
+      rel="stylesheet"
+    />
 
     <title>Hotel IO</title>
     <style>
       html,
       body,
+      /* ============================================================
+      styles.css — Design tokens shared across all UI web components
+      Web components read these via :host { ... } or directly since
+      custom properties pierce the shadow DOM boundary.
+      ============================================================ */
+      :root {
+        /* ── Surfaces ── */
+        --bg-0: oklch(0.08 0.005 250);
+        --bg-1: oklch(0.12 0.008 250);
+        --bg-2: oklch(0.16 0.006 250);
+        --panel: oklch(0.13 0.006 245 / 0.94);
+        --panel-solid: oklch(0.135 0.006 245);
+        --panel-hi: oklch(0.18 0.006 245);
+        --panel-inset: oklch(0.1 0.005 245);
+        --line: oklch(0.3 0.004 245);
+        --line-hi: oklch(0.45 0.005 245);
+        --line-dim: oklch(0.22 0.004 245);
+
+        /* ── Text ── */
+        --text: oklch(0.97 0.005 240);
+        --text-dim: oklch(0.7 0.004 240);
+        --text-mute: oklch(0.48 0.004 240);
+
+        /* ── Accents ── */
+        --redmagenta: oklch(0.66 0.27 18);
+        /* primary action */
+        --redmagenta-deep: oklch(0.5 0.26 18);
+        --redmagenta-ink: oklch(0.99 0 0);
+        /* text on */
+        --magenta: oklch(0.72 0.26 340);
+        --magenta-deep: oklch(0.55 0.25 340);
+        --violet: oklch(0.55 0.24 295);
+        --violet-light: oklch(0.68 0.22 295);
+        --teal: oklch(0.82 0.13 175);
+        --amber: oklch(0.85 0.16 80);
+        --red: oklch(0.66 0.27 18);
+        --online: oklch(0.8 0.18 145);
+
+        /* ── Console log-level colours ── */
+        --log-info: oklch(0.68 0.14 230);
+        --log-ok: var(--online);
+        --log-warn: var(--amber);
+        --log-err: var(--red);
+        --log-cmd: var(--violet-light);
+
+        /* ── Rarity ── */
+        --rarity-common: oklch(0.7 0.005 240);
+        --rarity-rare: var(--teal);
+        --rarity-epic: var(--violet);
+        --rarity-legendary: var(--amber);
+
+        /* ── Shadows ── */
+        --shadow-panel: 0 1px 0 oklch(1 0 0 / 0.03) inset, 0 24px 60px oklch(0 0 0 / 0.55);
+        --shadow-float: 0 8px 32px oklch(0 0 0 / 0.6);
+
+        /* ── Motion ── */
+        --ease: cubic-bezier(0.2, 0.7, 0.2, 1);
+
+        /* ── Typography ── */
+        --font-ui: "Archivo", "Inter", system-ui, sans-serif;
+        --font-display: "Archivo", "Inter", system-ui, sans-serif;
+        --font-mono: "JetBrains Mono", "Consolas", ui-monospace, monospace;
+      }
+
       * {
         cursor:
           url("/cursor-v1.png") 3 2,
           auto !important;
-        font-family: "Roboto", sans-serif;
+        font-family: var(--font-ui);
       }
 
       * {
@@ -30,7 +105,7 @@
         margin: 0;
         padding: 0;
         overflow: hidden;
-        background-color: #000000;
+        background-color: var(--bg-0);
       }
 
       canvas {
