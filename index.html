@@ -20,8 +20,6 @@
 
     <title>Hotel IO</title>
     <style>
-      html,
-      body,
       /* ============================================================
       styles.css — Design tokens shared across all UI web components
       Web components read these via :host { ... } or directly since
@@ -86,14 +84,17 @@
         --font-mono: "JetBrains Mono", "Consolas", ui-monospace, monospace;
       }
 
+      html,
+      body,
+      #root {
+        height: 100%;
+      }
+
       * {
         cursor:
           url("/cursor-v1.png") 3 2,
           auto !important;
-        font-family: var(--font-ui);
-      }
-
-      * {
+        box-sizing: border-box;
         font-synthesis: none;
         text-rendering: optimizeLegibility;
         -webkit-font-smoothing: antialiased;
@@ -101,11 +102,30 @@
       }
 
       body {
-        position: relative;
         margin: 0;
-        padding: 0;
+        font-family: var(--font-ui);
+        background: var(--bg-0);
+        color: var(--text);
         overflow: hidden;
-        background-color: var(--bg-0);
+        user-select: none;
+        -webkit-font-smoothing: antialiased;
+      }
+
+      body::before {
+        content: "";
+        position: fixed;
+        inset: 0;
+        z-index: 1;
+        pointer-events: none;
+        background:
+          radial-gradient(ellipse 80% 60% at center, transparent 30%, oklch(0.06 0.01 250 / 0.55) 100%),
+          linear-gradient(
+            180deg,
+            oklch(0.06 0.01 250 / 0.55),
+            transparent 16%,
+            transparent 80%,
+            oklch(0.06 0.01 250 / 0.6)
+          );
       }
 
       canvas {
@@ -115,6 +135,21 @@
         width: 100%;
         height: 100%;
         z-index: 1;
+      }
+
+      /* Scrollbars */
+      *::-webkit-scrollbar {
+        width: 6px;
+        height: 6px;
+      }
+      *::-webkit-scrollbar-track {
+        background: transparent;
+      }
+      *::-webkit-scrollbar-thumb {
+        background: var(--line);
+      }
+      *::-webkit-scrollbar-thumb:hover {
+        background: var(--redmagenta);
       }
     </style>
   </head>
