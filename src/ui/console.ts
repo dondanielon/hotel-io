@@ -8,6 +8,7 @@ import { Action } from "@root/shared/enums";
 import { Cylinder } from "@root/objects/cylinder";
 
 const LOCAL_STORAGE_COMMAND_HISTORY_KEY = "console-command-history";
+const LOCAL_STORAGE_OUTPUT_KEY = "console-output";
 
 type LogType = "info" | "warn" | "err" | "cmd" | "ok";
 type CommandResult = string | LogLine | LogLine[] | void;
@@ -17,6 +18,11 @@ interface LogLine {
   type: LogType;
   msg: string;
   ts?: string;
+}
+
+interface StoredOutput {
+  date: string;
+  logs: LogLine[];
 }
 
 interface Command {
@@ -33,6 +39,7 @@ export class UIConsole extends HTMLElement {
   private commands: Map<string, Command> = new Map();
   private commandHistoryIdx: number | null = null;
   private currentTab: string = "console";
+  private logs: LogLine[] = [];
 
   constructor() {
     super();
@@ -44,6 +51,7 @@ export class UIConsole extends HTMLElement {
     this.setupCommands();
     this.setupEventListeners();
     this.loadCommandHistory();
+    this.loadOutput();
     this.open();
   }
 
@@ -73,6 +81,8 @@ export class UIConsole extends HTMLElement {
         description: "Clears console",
         execute: () => {
           this.output?.replaceChildren();
+          this.logs = [];
+          localStorage.removeItem(LOCAL_STORAGE_OUTPUT_KEY);
         },
       },
       {
@@ -191,7 +201,7 @@ export class UIConsole extends HTMLElement {
       return;
     }
 
-    this.addCommandToHistory(cmdText);
+    this.saveHistory(cmdText);
 
     try {
       const result = await command.execute(args);
@@ -237,17 +247,25 @@ export class UIConsole extends HTMLElement {
   }
 
   private addOutputLine(line: LogLine | string) {
-    if (!this.output) return;
+    const log: LogLine =
+      typeof line === "string"
+        ? { lv: "INFO", type: "info", msg: line, ts: new Date().toTimeString().slice(0, 8) }
+        : { ...line, ts: line.ts || new Date().toTimeString().slice(0, 8) };
 
-    const log: LogLine = typeof line === "string" ? { lv: "INFO", type: "info", msg: line } : line;
+    this.logs.push(log);
+    this.saveOutput();
+    this.renderLogLine(log);
+  }
+
+  private renderLogLine(log: LogLine): void {
+    if (!this.output) return;
 
     const lineEl = document.createElement("div");
     lineEl.className = `console-output-line ${log.type}`;
 
     const tsEl = document.createElement("span");
-    const timestamp = log.ts || new Date().toTimeString().slice(0, 8);
     tsEl.className = "ts";
-    tsEl.textContent = `[${timestamp}]`;
+    tsEl.textContent = `[${log.ts}]`;
 
     const lvEl = document.createElement("span");
     lvEl.className = "lv";
@@ -263,6 +281,29 @@ export class UIConsole extends HTMLElement {
     this.output.scrollTop = this.output.scrollHeight;
   }
 
+  private saveOutput(): void {
+    const stored: StoredOutput = { date: new Date().toISOString().slice(0, 10), logs: this.logs };
+    localStorage.setItem(LOCAL_STORAGE_OUTPUT_KEY, JSON.stringify(stored));
+  }
+
+  private loadOutput(): void {
+    try {
+      const raw = localStorage.getItem(LOCAL_STORAGE_OUTPUT_KEY);
+      if (raw === null) return;
+
+      const parsed = JSON.parse(raw) as Partial<StoredOutput>;
+      if (parsed.date !== new Date().toISOString().slice(0, 10) || !Array.isArray(parsed.logs)) {
+        localStorage.removeItem(LOCAL_STORAGE_OUTPUT_KEY);
+        return;
+      }
+
+      this.logs = parsed.logs;
+      this.logs.forEach((log) => this.renderLogLine(log));
+    } catch {
+      // Silently fail
+    }
+  }
+
   private loadCommandHistory(): void {
     try {
       const history = localStorage.getItem(LOCAL_STORAGE_COMMAND_HISTORY_KEY);
@@ -276,7 +317,7 @@ export class UIConsole extends HTMLElement {
     }
   }
 
-  private addCommandToHistory(cmdText: string): void {
+  private saveHistory(cmdText: string): void {
     this.commandHistoryIdx = null;
     if (cmdText !== this.commandHistory.at(-1)) {
       this.commandHistory.push(cmdText);
