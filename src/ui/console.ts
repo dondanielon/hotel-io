@@ -9,9 +9,19 @@ import { Cylinder } from "@root/objects/cylinder";
 
 const LOCAL_STORAGE_COMMAND_HISTORY_KEY = "console-command-history";
 
+type LogType = "info" | "warn" | "err" | "cmd" | "ok";
+type CommandResult = string | LogLine | LogLine[] | void;
+
+interface LogLine {
+  lv: string;
+  type: LogType;
+  msg: string;
+  ts?: string;
+}
+
 interface Command {
   name: string;
-  execute: (args?: string[]) => string | Promise<string> | void | Promise<void>;
+  execute: (args?: string[]) => CommandResult | Promise<CommandResult>;
   description: string;
 }
 
@@ -45,25 +55,25 @@ export class UIConsole extends HTMLElement {
   private setupCommands(): void {
     const commands: Command[] = [
       {
-        name: "help",
+        name: "/help",
         description: "Show list of available commands",
         execute: () => {
           const list = Array.from(this.commands.values())
-            .map((cmd) => ` ${cmd.name} - ${cmd.description}`)
+            .map((cmd) => `${cmd.name} - ${cmd.description}`)
             .join("\n");
 
           return `Available commands:\n${list}`;
         },
       },
       {
-        name: "clear",
+        name: "/clear",
         description: "Clears console",
         execute: () => {
           this.output?.replaceChildren();
         },
       },
       {
-        name: "clear-command-history",
+        name: "/clear-command-history",
         description: "Clears command history",
         execute: () => {
           this.commandHistory = [];
@@ -71,7 +81,7 @@ export class UIConsole extends HTMLElement {
         },
       },
       {
-        name: "place-item",
+        name: "/place-item",
         description: "Places an item on the terrain",
         execute: (args) => {
           const itemId = args?.[0];
@@ -131,26 +141,33 @@ export class UIConsole extends HTMLElement {
   }
 
   private async executeCommand(): Promise<void> {
-    const cmdText = this.input?.value.trim();
+    if (!this.input) return;
+    const cmdText = this.input.value.trim();
     if (!cmdText) return;
 
-    this.addOutputLine(`hotel-io: ${cmdText}`, "console-output-line");
+    this.input.value = "";
+    this.addOutputLine({ lv: "CMD", type: "cmd", msg: `> ${cmdText}` });
 
     const [commandName, ...args] = cmdText.split(" ");
     const command = this.commands.get(commandName);
 
     if (!command) {
-      this.addOutputLine(`command not found: ${cmdText}`, "console-output-line");
-    } else {
-      this.addCommandToHistory(cmdText);
-      try {
-        const result = await command.execute(args);
-        if (result) {
-          this.addOutputLine(result);
-        }
-      } catch (error: any) {
-        this.addOutputLine(`Error: ${error.message}`, "console-output-line error");
+      this.addOutputLine({ lv: "ERR", type: "err", msg: `unknown command: ${cmdText}. try /help` });
+      return;
+    }
+
+    this.addCommandToHistory(cmdText);
+
+    try {
+      const result = await command.execute(args);
+      if (!result) return;
+      if (Array.isArray(result)) {
+        result.forEach((line) => this.addOutputLine(line));
+      } else {
+        this.addOutputLine(result);
       }
+    } catch (error: any) {
+      this.addOutputLine({ lv: "ERR", type: "err", msg: `error: ${error.message}` });
     }
   }
 
@@ -184,17 +201,31 @@ export class UIConsole extends HTMLElement {
     this.input.value = this.commandHistory[this.commandHistoryIdx];
   }
 
-  private addOutputLine(text: string, className: string = "") {
-    if (this.input && this.output) {
-      const line = document.createElement("div");
-      line.className = className;
-      line.style.whiteSpace = "pre-wrap";
-      line.textContent = text;
+  private addOutputLine(line: LogLine | string) {
+    if (!this.output) return;
 
-      this.output.appendChild(line);
-      this.input.value = "";
-      this.output.scrollTop = this.output.scrollHeight;
-    }
+    const log: LogLine = typeof line === "string" ? { lv: "INFO", type: "info", msg: line } : line;
+
+    const lineEl = document.createElement("div");
+    lineEl.className = `console-output-line ${log.type}`;
+
+    const tsEl = document.createElement("span");
+    const timestamp = log.ts || new Date().toTimeString().slice(0, 8);
+    tsEl.className = "ts";
+    tsEl.textContent = `[${timestamp}]`;
+
+    const lvEl = document.createElement("span");
+    lvEl.className = "lv";
+    lvEl.textContent = log.lv;
+
+    const msgEl = document.createElement("span");
+    msgEl.className = "msg";
+    msgEl.style.whiteSpace = "pre-wrap";
+    msgEl.textContent = log.msg;
+
+    lineEl.append(tsEl, lvEl, msgEl);
+    this.output.appendChild(lineEl);
+    this.output.scrollTop = this.output.scrollHeight;
   }
 
   private loadCommandHistory(): void {

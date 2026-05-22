@@ -126,7 +126,7 @@
 }
 
 .console-output-line.err .lv {
-  color: var(--magenta);
+  color: var(--red);
 }
 
 .console-output-line.cmd .lv {
