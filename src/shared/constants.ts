@@ -46,5 +46,5 @@ export const SETTING_SANDBOX_MAIN_CANVAS_ID = "sandbox-main";
 // prettier-ignore
 export const TERRAIN_DEFAULT_SANDBOX_SHAPE_POINTS = [new THREE.Vector2(0, 0),new THREE.Vector2(40, 0),new THREE.Vector2(40, 40),new THREE.Vector2(0, 40),new THREE.Vector2(0, 0),]
 
-export const UI_CONSOLE_TAG_NAME = "web-console";
+export const UI_CONSOLE_TAG_NAME = "cx-console";
 export const UI_OBJECT_CONTEXT_MENU_TAG_NAME = "object-context-menu";
