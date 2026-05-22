@@ -226,7 +226,7 @@ export class InputManager {
         assert(intersectionPoint, "intersectionPoint");
 
         objectToPlace.mesh.position.copy(intersectionPoint);
-        objectToPlace.mesh.position.y = 1;
+        objectToPlace.mesh.position.y = 0.5;
       }
     } catch {} // Silently fail
     return;
