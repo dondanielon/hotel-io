@@ -7,6 +7,8 @@ import { GameObject } from "@root/objects/game-object";
 import { Action } from "@root/shared/enums";
 import { Cylinder } from "@root/objects/cylinder";
 
+const LOCAL_STORAGE_COMMAND_HISTORY_KEY = "console-command-history";
+
 interface Command {
   name: string;
   execute: (args?: string[]) => string | Promise<string> | void | Promise<void>;
@@ -18,6 +20,7 @@ export class UIWebConsole extends HTMLElement {
   private input: HTMLInputElement | null = null;
   private commandHistory: string[] = [];
   private commands: Map<string, Command> = new Map();
+  private commandHistoryIdx: number | null = null;
 
   constructor() {
     super();
@@ -28,6 +31,7 @@ export class UIWebConsole extends HTMLElement {
     this.render();
     this.setupCommands();
     this.setupEventListeners();
+    this.loadCommandHistory();
   }
 
   public addCommand(name: string, cmd: Command) {
@@ -56,6 +60,14 @@ export class UIWebConsole extends HTMLElement {
         description: "Clears console",
         execute: () => {
           this.output?.replaceChildren();
+        },
+      },
+      {
+        name: "clear-command-history",
+        description: "Clears command history",
+        execute: () => {
+          this.commandHistory = [];
+          localStorage.removeItem(LOCAL_STORAGE_COMMAND_HISTORY_KEY);
         },
       },
       {
@@ -100,12 +112,20 @@ export class UIWebConsole extends HTMLElement {
 
   private setupEventListeners(): void {
     this.input?.addEventListener("keydown", (e) => {
-      switch (e.key) {
-        case "Enter":
-          this.executeCommand();
-          break;
-        default:
-          break;
+      const key = e.key.toLowerCase();
+      if (key === "enter") {
+        this.executeCommand();
+        return;
+      }
+      if (key === "arrowup") {
+        e.preventDefault();
+        this.handleArrowUp();
+        return;
+      }
+      if (key === "arrowdown") {
+        e.preventDefault();
+        this.handleArrowDown();
+        return;
       }
     });
   }
@@ -114,7 +134,6 @@ export class UIWebConsole extends HTMLElement {
     const cmdText = this.input?.value.trim();
     if (!cmdText) return;
 
-    this.commandHistory.push(cmdText);
     this.addOutputLine(`hotel-io: ${cmdText}`, "output-line");
 
     const [commandName, ...args] = cmdText.split(" ");
@@ -123,6 +142,7 @@ export class UIWebConsole extends HTMLElement {
     if (!command) {
       this.addOutputLine(`command not found: ${cmdText}`, "output-line");
     } else {
+      this.addCommandToHistory(cmdText);
       try {
         const result = await command.execute(args);
         if (result) {
@@ -132,6 +152,36 @@ export class UIWebConsole extends HTMLElement {
         this.addOutputLine(`Error: ${error.message}`, "output-line error");
       }
     }
+  }
+
+  private handleArrowUp(): void {
+    if (!this.input) return;
+    if (this.commandHistoryIdx === null) {
+      if (this.commandHistory.length > 0) {
+        this.commandHistoryIdx = this.commandHistory.length - 1;
+        this.input.value = this.commandHistory[this.commandHistoryIdx];
+      }
+    } else {
+      if (this.commandHistoryIdx === 0) {
+        if (this.input.value) return;
+        this.input.value = this.commandHistory[this.commandHistoryIdx];
+        return;
+      }
+      this.commandHistoryIdx = this.commandHistoryIdx - 1;
+      this.input.value = this.commandHistory[this.commandHistoryIdx];
+    }
+  }
+
+  private handleArrowDown(): void {
+    if (!this.input) return;
+    if (this.commandHistoryIdx === null) return;
+    if (this.commandHistoryIdx === this.commandHistory.length - 1) {
+      this.commandHistoryIdx = null;
+      this.input.value = "";
+      return;
+    }
+    this.commandHistoryIdx = this.commandHistoryIdx + 1;
+    this.input.value = this.commandHistory[this.commandHistoryIdx];
   }
 
   private addOutputLine(text: string, className: string = "") {
@@ -191,6 +241,27 @@ export class UIWebConsole extends HTMLElement {
         isDragging = false;
       }
     });
+  }
+
+  private loadCommandHistory(): void {
+    try {
+      const history = localStorage.getItem(LOCAL_STORAGE_COMMAND_HISTORY_KEY);
+      if (history === null) return;
+      const parsedHistory = JSON.parse(history);
+      if (Array.isArray(parsedHistory)) {
+        this.commandHistory = parsedHistory;
+      }
+    } catch {
+      // Silently fail
+    }
+  }
+
+  private addCommandToHistory(cmdText: string): void {
+    this.commandHistoryIdx = null;
+    if (cmdText !== this.commandHistory.at(-1)) {
+      this.commandHistory.push(cmdText);
+      localStorage.setItem(LOCAL_STORAGE_COMMAND_HISTORY_KEY, JSON.stringify(this.commandHistory));
+    }
   }
 
   private render(): void {
