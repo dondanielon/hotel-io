@@ -15,10 +15,15 @@
   backdrop-filter: blur(16px);
   border-bottom: 1px solid var(--redmagenta);
   box-shadow: 0 6px 32px oklch(0 0 0 / 0.6);
+  transform: translateY(-100%);
   transition: transform .22s var(--ease);
   display: flex;
   flex-direction: column;
   z-index: 50;
+}
+
+.console-container.open {
+  transform: translateY(0);
 }
 
 .console-header {

@@ -1,4 +1,5 @@
 import { GameStore } from "@root/shared/stores";
+import { UIConsole } from "@ui/console";
 import { version } from "../../package.json";
 
 import {
@@ -44,8 +45,9 @@ export function targetsMainCanvas(target: EventTarget | null): boolean {
 
 export function removeOrAppendConsole(): void {
   const collection = document.getElementsByTagName(UI_CONSOLE_TAG_NAME);
-  if (collection[0]) {
-    collection[0].remove();
+  const existing = collection[0];
+  if (existing instanceof UIConsole) {
+    existing.close();
   } else {
     const console = document.createElement(UI_CONSOLE_TAG_NAME);
     document.body.appendChild(console);

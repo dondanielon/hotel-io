@@ -26,11 +26,13 @@ interface Command {
 }
 
 export class UIConsole extends HTMLElement {
+  private container: HTMLDivElement | null = null;
   private output: HTMLDivElement | null = null;
   private input: HTMLInputElement | null = null;
   private commandHistory: string[] = [];
   private commands: Map<string, Command> = new Map();
   private commandHistoryIdx: number | null = null;
+  private currentTab: string = "console";
 
   constructor() {
     super();
@@ -42,6 +44,7 @@ export class UIConsole extends HTMLElement {
     this.setupCommands();
     this.setupEventListeners();
     this.loadCommandHistory();
+    this.open();
   }
 
   public addCommand(name: string, cmd: Command) {
@@ -111,7 +114,7 @@ export class UIConsole extends HTMLElement {
           if (objectToPlace) {
             GameStore.setState({ action: Action.EditorPlacingItem, objectToPlace });
             scene.add(objectToPlace.mesh);
-            this.remove();
+            this.close();
           }
         },
       },
@@ -138,6 +141,38 @@ export class UIConsole extends HTMLElement {
         return;
       }
     });
+
+    this.setupTabs();
+  }
+
+  private setupTabs(): void {
+    const tabs = this.shadowRoot?.querySelectorAll<HTMLButtonElement>(".console-tab");
+    if (!tabs) return;
+
+    tabs.forEach((tab) => {
+      tab.addEventListener("click", () => {
+        const tabName = tab.dataset.tab;
+        if (!tabName || tabName === this.currentTab) return;
+        this.currentTab = tabName;
+        tabs.forEach((t) => t.classList.toggle("active", t === tab));
+      });
+    });
+  }
+
+  private open(): void {
+    if (!this.container) return;
+    requestAnimationFrame(() => {
+      this.container?.classList.add("open");
+    });
+  }
+
+  public close(): void {
+    if (!this.container) {
+      this.remove();
+      return;
+    }
+    this.container.addEventListener("transitionend", () => this.remove(), { once: true });
+    this.container.classList.remove("open");
   }
 
   private async executeCommand(): Promise<void> {
@@ -257,13 +292,14 @@ export class UIConsole extends HTMLElement {
       ${htmlTemplate}
     `;
 
+    this.container = this.shadowRoot.querySelector(".console-container");
     this.input = this.shadowRoot.querySelector("#input");
     this.output = this.shadowRoot.querySelector("#output");
 
     const closeBtn = this.shadowRoot.querySelector("#close");
     if (closeBtn) {
       closeBtn.addEventListener("click", () => {
-        this.remove();
+        this.close();
       });
     }
 
