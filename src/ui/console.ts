@@ -74,18 +74,18 @@ export class UIConsole extends HTMLElement {
     const commands: Command[] = [
       {
         name: "/help",
-        description: "show list of available commands",
+        description: "Show list of available commands",
         execute: () => {
           const list = Array.from(this.commands.values())
             .map((cmd) => `${cmd.name} - ${cmd.description}`)
             .join("\n");
 
-          return `available commands:\n${list}`;
+          return `Available commands:\n${list}`;
         },
       },
       {
         name: "/clear",
-        description: "clears console",
+        description: "Clears console",
         execute: () => {
           this.output?.replaceChildren();
           this.logs = [];
@@ -94,21 +94,23 @@ export class UIConsole extends HTMLElement {
       },
       {
         name: "/clear-command-history",
-        description: "clears command history",
+        description: "Clears command history",
         execute: () => {
+          const commands = this.commandHistory.length;
           this.commandHistory = [];
           localStorage.removeItem(LOCAL_STORAGE_COMMAND_HISTORY_KEY);
+          return `Cleared ${commands} commands from history`;
         },
       },
       {
         name: "/place-item",
-        description: "places an item on the terrain",
+        description: "Places an item on the terrain",
         execute: (args) => {
-          const itemId = args?.[0];
-          if (!itemId) return "missing item id. (ex: place-item box)";
+          const itemName = args?.[0];
+          if (!itemName) return "Missing item id. (ex: place-item box)";
 
           const scene = GameStore.getState().scene;
-          if (!scene) return "error: scene is not defined in game state";
+          if (!scene) return "Error: scene is not defined in game state";
 
           const currentObjectToPlace = GameStore.getState().objectToPlace;
           let objectToPlace: GameObject | null = null;
@@ -119,12 +121,11 @@ export class UIConsole extends HTMLElement {
             GameStore.update("objectToPlace", null);
           }
 
-          if (itemId === "box") {
+          if (itemName === "box") {
             objectToPlace = new Box();
-            objectToPlace.mesh.rotation.x = -Math.PI / 2;
           }
 
-          if (itemId === "cyl") {
+          if (itemName === "cyl") {
             objectToPlace = new Cylinder();
           }
 
@@ -132,6 +133,7 @@ export class UIConsole extends HTMLElement {
             GameStore.setState({ action: Action.EditorPlacingItem, objectToPlace });
             scene.add(objectToPlace.mesh);
             this.close();
+            return `Placing ${itemName} item with id: ${objectToPlace.mesh.uuid}`;
           }
         },
       },
@@ -204,7 +206,7 @@ export class UIConsole extends HTMLElement {
     const command = this.commands.get(commandName);
 
     if (!command) {
-      this.addOutputLine({ lv: LogLevel.Warning, type: "warn", msg: `unknown command: ${cmdText}. try /help` });
+      this.addOutputLine({ lv: LogLevel.Warning, type: "warn", msg: `Unknown command: ${cmdText}. try /help` });
       return;
     }
 
