@@ -1,0 +1,242 @@
+* {
+  margin: 0;
+  padding: 0;
+  cursor: url("/cursor-v1.png") 3 2, auto !important;
+}
+
+.top-menu-container {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  display: flex;
+  align-items: stretch;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 10px 12px;
+  pointer-events: none;
+  z-index: 10;
+}
+
+.top-menu-container>* {
+  pointer-events: auto;
+}
+
+.row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.currency-bar {
+  display: flex;
+  align-items: stretch;
+  gap: 0;
+  background: var(--panel);
+  border: 1px solid var(--line);
+  height: 36px;
+  backdrop-filter: blur(14px);
+}
+
+.currency-pill {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 0 10px;
+  font-family: var(--font-mono);
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text);
+  border-right: 1px solid var(--line);
+}
+
+.currency-pill:last-child {
+  border-right: 0;
+}
+
+.currency-pill .ico {
+  width: 18px;
+  height: 18px;
+  display: grid;
+  place-items: center;
+}
+
+.currency-pill.coins .ico {
+  color: var(--redmagenta);
+}
+
+.player-pip {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 0 10px;
+  background: var(--panel);
+  border: 1px solid var(--line);
+  height: 36px;
+  font-family: var(--font-mono);
+  font-size: 11px;
+  font-weight: 600;
+  backdrop-filter: blur(14px);
+  cursor: pointer;
+  transition: border-color .12s var(--ease);
+}
+
+.player-pip:hover {
+  border-color: var(--redmagenta);
+}
+
+.player-pip .av {
+  width: 22px;
+  height: 22px;
+  background: linear-gradient(135deg, var(--violet), var(--magenta));
+  display: grid;
+  place-items: center;
+  font-family: var(--font-display);
+  font-weight: 800;
+  font-size: 10px;
+  color: var(--text);
+  letter-spacing: -0.02em;
+}
+
+.player-pip .lv {
+  color: var(--redmagenta);
+  font-weight: 700;
+}
+
+.player-pip .nm {
+  color: var(--text);
+}
+
+.player-pip .xpwrap {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  border-left: 1px solid var(--line);
+  padding-left: 8px;
+  margin-left: 2px;
+  color: var(--text-mute);
+}
+
+.player-pip .xpbar {
+  width: 40px;
+  height: 3px;
+  background: oklch(0.22 0.005 240);
+}
+
+.player-pip .xpfill {
+  height: 100%;
+  background: var(--redmagenta);
+}
+
+.xpfill {
+  display: block;
+  width: 46%;
+  height: 100%;
+  background: var(--redmagenta);
+}
+
+.tabs {
+  display: flex;
+  align-items: stretch;
+  background: var(--panel);
+  border: 1px solid var(--line);
+  height: 36px;
+  backdrop-filter: blur(14px);
+}
+
+.tab {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 0 12px;
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--text-dim);
+  background: none;
+  border: none;
+  border-right: 1px solid var(--line);
+  cursor: pointer;
+  transition: all .12s var(--ease);
+  position: relative;
+}
+
+.tab:last-child {
+  border-right: 0;
+}
+
+.tab:hover {
+  color: var(--text);
+  background: var(--panel-hi);
+}
+
+.tab.active {
+  background: var(--lime);
+  color: var(--lime-ink);
+}
+
+.tab .count {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  color: var(--lime-ink);
+  background: oklch(0.45 0.20 18);
+  padding: 1px 5px;
+  border-radius: 2px;
+}
+
+.tab.active .count {
+  background: oklch(0.4 0.18 18);
+  color: var(--lime-ink);
+}
+
+.tab:not(.active) .count {
+  color: var(--text-mute);
+  background: var(--panel-inset);
+}
+
+.tab .tab-kbd {
+  font-family: var(--font-mono);
+  font-size: 9px;
+  background: oklch(0.22 0.005 240);
+  color: var(--text-mute);
+  padding: 1px 4px;
+  border-radius: 2px;
+  opacity: 0.7;
+}
+
+.icon-btn {
+  width: 36px;
+  height: 36px;
+  display: grid;
+  place-items: center;
+  background: var(--panel);
+  border: 1px solid var(--line);
+  cursor: pointer;
+  color: var(--text-dim);
+  transition: all .15s var(--ease);
+  position: relative;
+}
+
+.icon-btn:hover {
+  color: var(--text);
+  border-color: var(--lime);
+}
+
+.icon-btn .badge {
+  position: absolute;
+  top: -2px;
+  right: -2px;
+  min-width: 16px;
+  height: 16px;
+  background: var(--magenta);
+  border: 2px solid var(--bg-0);
+  font-size: 9px;
+  font-weight: 700;
+  font-family: var(--font-mono);
+  color: white;
+  display: grid;
+  place-items: center;
+  padding: 0 4px;
+}

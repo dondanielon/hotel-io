@@ -48,3 +48,4 @@ export const TERRAIN_DEFAULT_SANDBOX_SHAPE_POINTS = [new THREE.Vector2(0, 0),new
 
 export const UI_CONSOLE_TAG_NAME = "cx-console";
 export const UI_OBJECT_CONTEXT_MENU_TAG_NAME = "object-context-menu";
+export const UI_TOP_MENU_TAG_NAME = "top-menu";

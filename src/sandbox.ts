@@ -14,6 +14,7 @@ import {
   CAMERA_NEAR_VIEW,
   SETTING_SANDBOX_MAIN_CANVAS_ID,
   TERRAIN_DEFAULT_SANDBOX_SHAPE_POINTS,
+  UI_TOP_MENU_TAG_NAME,
 } from "@shared/constants";
 import { ObjectMovementManager } from "./managers/object-movement-manager";
 
@@ -31,7 +32,7 @@ export class Sandbox {
     this.camera = new THREE.PerspectiveCamera(CAMERA_FOV, CAMERA_ASPECT_RATIO, CAMERA_NEAR_VIEW, CAMERA_FAR_VIEW);
     this.mainPlayer = null;
     this.players = new Map();
-    this.renderer = new THREE.WebGPURenderer({ antialias: true });
+    this.renderer = new THREE.WebGPURenderer({ antialias: true, forceWebGL: true });
     this.scene = new THREE.Scene();
     this.terrain = null;
     this.timer = new THREE.Timer();
@@ -47,6 +48,7 @@ export class Sandbox {
     this.setupCamera();
     this.setupSceneLighting();
     this.setupTerrain();
+    this.setupUI();
     await Promise.all([this.renderer.init(), this.setupPlayer()]);
 
     assert(this.mainPlayer, "mainPlayer");
@@ -136,5 +138,10 @@ export class Sandbox {
 
     // GameStore.update("wireframeMesh", playerWireframe);
     GameStore.update("mainPlayerId", player.id);
+  }
+
+  private setupUI(): void {
+    const topmenu = document.createElement(UI_TOP_MENU_TAG_NAME);
+    document.body.append(topmenu);
   }
 }
