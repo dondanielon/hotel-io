@@ -1,0 +1,268 @@
+.contracts-panel {
+  display: grid;
+  grid-template-columns: 240px 1fr;
+  height: 100%;
+  min-height: 0;
+}
+
+.contracts-side {
+  border-right: 1px solid var(--line);
+  background: var(--panel-inset);
+  display: flex;
+  flex-direction: column;
+  overflow: auto;
+}
+
+.rank-card {
+  margin: 12px;
+  padding: 12px;
+  background: var(--lime);
+  color: var(--lime-ink);
+  display: flex;
+  flex-direction: column;
+}
+
+.rank-no {
+  font-family: var(--font-display);
+  font-size: 11px;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+
+.rank-rep {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  font-weight: 700;
+  margin-top: 2px;
+  opacity: 0.85;
+}
+
+.rank-icon {
+  width: 60px;
+  height: 60px;
+  margin: 12px auto 6px;
+  background: var(--lime-ink);
+  display: grid;
+  place-items: center;
+  color: var(--lime);
+  font-family: var(--font-display);
+  font-weight: 900;
+  font-size: 20px;
+}
+
+.rank-bar {
+  height: 4px;
+  background: oklch(0 0 0 / 0.35);
+  margin-top: 4px;
+}
+
+.rank-bar .fill { height: 100%; background: var(--lime-ink); }
+
+.side-link {
+  padding: 10px 14px;
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--text-dim);
+  cursor: pointer;
+  border-bottom: 1px solid var(--line-dim);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.side-link:hover { color: var(--text); background: var(--panel-hi); }
+.side-link.active { color: var(--lime-ink); background: var(--lime); }
+
+.side-link .num {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  background: oklch(0 0 0 / 0.35);
+  color: inherit;
+  padding: 1px 6px;
+}
+
+.faction-label {
+  padding: 14px 14px 6px;
+  font-family: var(--font-mono);
+  font-size: 9px;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: var(--text-mute);
+}
+
+.faction-filters {
+  padding: 0 12px 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+/* Override filter-chip for faction colors */
+.faction-filters .filter-chip.active {
+  background: var(--fac, var(--lime));
+  border-color: var(--fac, var(--lime));
+  color: white;
+}
+
+.contracts-list {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 8px;
+  padding: 12px;
+  align-content: start;
+  overflow: auto;
+}
+
+.contract-card {
+  background: var(--panel-inset);
+  border: 1px solid var(--line);
+  display: flex;
+  flex-direction: column;
+  cursor: pointer;
+  transition: border-color .15s var(--ease);
+}
+
+.contract-card:hover { border-color: var(--lime); }
+
+.contract-card .ctr-head {
+  background: var(--ctr-color, var(--lime));
+  color: var(--lime-ink);
+  padding: 8px 10px;
+  font-family: var(--font-display);
+  font-size: 12px;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.ctr-tag {
+  display: inline-block;
+  padding: 2px 6px;
+  background: var(--bg-0);
+  color: var(--text);
+  font-family: var(--font-mono);
+  font-size: 9px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  margin: 8px 10px 0;
+  border: 1px solid var(--line);
+  align-self: flex-start;
+}
+
+.ctr-desc {
+  padding: 8px 10px;
+  font-size: 12px;
+  color: var(--text-dim);
+  line-height: 1.5;
+  flex: 1;
+}
+
+.ctr-objectives {
+  padding: 0 10px 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.objective {
+  padding: 6px 8px;
+  background: var(--bg-0);
+  border: 1px solid var(--line-dim);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.objective.locked { opacity: 0.55; }
+.objective .obj-text { flex: 1; font-size: 11px; color: var(--text-dim); line-height: 1.4; }
+
+.obj-progress {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 2px;
+  flex-shrink: 0;
+}
+
+.obj-progress .v { font-family: var(--font-mono); font-size: 11px; font-weight: 700; color: var(--text); }
+.obj-progress .v.done { color: var(--online); }
+.obj-progress .reward { font-family: var(--font-mono); font-size: 9px; color: var(--amber); }
+.objective .lock { color: var(--amber); }
+
+.ctr-rewards {
+  padding: 8px 10px;
+  border-top: 1px solid var(--line);
+  background: var(--bg-0);
+}
+
+.ctr-rewards .lbl {
+  font-family: var(--font-mono);
+  font-size: 9px;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: var(--text-mute);
+  margin-bottom: 6px;
+  display: block;
+}
+
+.reward-grid { display: flex; gap: 4px; }
+
+.rwd {
+  width: 36px;
+  height: 36px;
+  background: var(--panel-inset);
+  border: 1px solid var(--line);
+  display: grid;
+  place-items: center;
+  position: relative;
+}
+
+.rwd .rarity-bar {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 2px;
+}
+
+.rwd .glyph {
+  font-family: var(--font-display);
+  font-weight: 800;
+  font-size: 11px;
+  color: var(--text);
+  letter-spacing: -0.02em;
+}
+
+.rwd.plus { color: var(--text-mute); font-family: var(--font-mono); font-weight: 700; font-size: 12px; }
+
+.ctr-activate {
+  padding: 10px;
+  background: var(--bg-0);
+  border-top: 1px solid var(--line);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: var(--lime);
+  cursor: pointer;
+  font-family: var(--font-display);
+  font-size: 12px;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  transition: background .12s var(--ease);
+}
+
+.ctr-activate:hover { background: var(--lime); color: var(--lime-ink); }
+
+.ctr-activate .icon {
+  width: 18px;
+  height: 18px;
+  border: 1.5px solid currentColor;
+  display: grid;
+  place-items: center;
+}
