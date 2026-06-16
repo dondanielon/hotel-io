@@ -9,6 +9,24 @@ export class UITopMenu extends HTMLElement {
 
   connectedCallback(): void {
     this.render();
+    this.setupFactionStrip();
+  }
+
+  private setupFactionStrip(): void {
+    const tabs = this.shadowRoot?.querySelectorAll<HTMLButtonElement>(".faction-tab");
+    if (!tabs) return;
+
+    tabs.forEach((tab) => {
+      tab.addEventListener("click", () => {
+        tabs.forEach((t) => t.classList.remove("active"));
+        tab.classList.add("active");
+        this.dispatchEvent(new CustomEvent("faction-select", {
+          detail: { faction: tab.dataset.faction },
+          bubbles: true,
+          composed: true,
+        }));
+      });
+    });
   }
 
   private render(): void {
