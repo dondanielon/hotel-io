@@ -1,17 +1,19 @@
 import htmlTemplate from "./chat-bar.html?raw";
 import cssTemplate from "./chat-bar.css?raw";
+import { handleActiveInput } from "@root/shared/utils";
 
-const CHANNELS = ["SAY", "PARTY", "ROOM", "WHISPER"] as const;
+const CHANNELS = ["SAY", "PARTY", "WHISPER"] as const;
 type Channel = (typeof CHANNELS)[number];
 
 interface ChatMessage {
   who: string;
   body: string;
-  type?: "say" | "party" | "room" | "whisper" | "system";
+  type?: Channel;
 }
 
 export class UIChatBar extends HTMLElement {
   private log: HTMLDivElement | null = null;
+  private form: HTMLFormElement | null = null;
   private input: HTMLInputElement | null = null;
   private channelBtn: HTMLSpanElement | null = null;
   private channel: Channel = "SAY";
@@ -31,21 +33,14 @@ export class UIChatBar extends HTMLElement {
   }
 
   private setupEventListeners(): void {
-    const form = this.shadowRoot?.querySelector<HTMLFormElement>("#chat-form");
-    form?.addEventListener("submit", (e) => {
+    if (!this.shadowRoot) return;
+
+    this.shadowRoot.addEventListener("focusin", () => handleActiveInput());
+    this.channelBtn?.addEventListener("click", () => this.cycleChannel());
+    this.form?.addEventListener("submit", (e) => {
       e.preventDefault();
       this.sendMessage();
     });
-
-    this.channelBtn?.addEventListener("click", () => this.cycleChannel());
-
-    const globalHandler = (e: KeyboardEvent) => {
-      if (e.key === "Enter" && document.activeElement?.tagName !== "INPUT") {
-        this.input?.focus();
-        e.preventDefault();
-      }
-    };
-    window.addEventListener("keydown", globalHandler);
   }
 
   private cycleChannel(): void {
@@ -55,6 +50,7 @@ export class UIChatBar extends HTMLElement {
   }
 
   private sendMessage(): void {
+    this.input?.focus();
     if (!this.input?.value.trim()) return;
     const body = this.input.value.trim();
     const type = this.channel.toLowerCase() as ChatMessage["type"];
@@ -64,8 +60,8 @@ export class UIChatBar extends HTMLElement {
 
   private appendMessage(msg: ChatMessage): void {
     if (!this.log) return;
-    const type = msg.type || "say";
-    const chLabel = type === "system" ? "SYS" : type === "whisper" ? "W" : type === "party" ? "PARTY" : "SAY";
+    const type = msg.type || "SAY";
+    const chLabel = type.slice(0, 5);
 
     const line = document.createElement("div");
     line.className = `chat-msg ${type}`;
@@ -89,5 +85,6 @@ export class UIChatBar extends HTMLElement {
     this.log = this.shadowRoot.querySelector("#chat-log");
     this.input = this.shadowRoot.querySelector("#chat-input");
     this.channelBtn = this.shadowRoot.querySelector("#chat-channel");
+    this.form = this.shadowRoot.querySelector("#chat-form");
   }
 }

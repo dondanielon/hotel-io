@@ -6,11 +6,18 @@
 }
 
 .chat-zone {
+  position: absolute;
   flex: 1;
   display: flex;
   flex-direction: column;
   gap: 6px;
-  max-width: 540px;
+  max-width: 480px;
+  z-index: 10;
+  bottom: 10px;
+  left: 12px;
+  overflow-wrap: break-word;
+  word-wrap: break-word;
+  word-break: break-all;
 }
 
 .chat-log {
@@ -22,6 +29,8 @@
   padding: 8px 10px;
   background: linear-gradient(180deg, transparent, oklch(0.08 0.01 250 / 0.5));
   mask-image: linear-gradient(180deg, transparent, black 30%, black);
+  overflow-wrap: break-word;
+  word-wrap: break-word;
 }
 
 .chat-msg {
@@ -29,8 +38,10 @@
   line-height: 1.45;
   display: flex;
   gap: 6px;
-  align-items: baseline;
+  align-items: flex-start;
   font-family: var(--font-ui);
+  overflow-wrap: break-word;
+  word-wrap: break-word;
 }
 
 .chat-msg .ch {
@@ -43,20 +54,60 @@
   color: var(--text-mute);
   border: 1px solid var(--line-dim);
   flex-shrink: 0;
+  display: inline-block;
+  box-sizing: content-box;
+  width: calc(5ch + 0.4em);
+  text-align: center;
+  white-space: nowrap;
+  overflow: hidden;
 }
 
-.chat-msg.say .ch { color: var(--text-dim); }
-.chat-msg.system .ch { color: var(--lime); border-color: oklch(0.5 0.15 130 / 0.4); }
-.chat-msg.whisper .ch { color: var(--magenta); border-color: oklch(0.5 0.2 0 / 0.4); }
-.chat-msg.party .ch { color: var(--violet-light); border-color: oklch(0.5 0.2 295 / 0.4); }
+.chat-msg.say .ch {
+  color: var(--text-dim);
+}
 
-.chat-msg .who { font-weight: 700; color: var(--text); }
-.chat-msg.system .who { color: var(--lime); }
-.chat-msg.whisper .who { color: var(--magenta); }
-.chat-msg.party .who { color: var(--violet-light); }
+.chat-msg.system .ch {
+  color: var(--redmagenta);
+  border-color: oklch(0.5 0.15 18 / 0.4);
+}
 
-.chat-msg .body { color: var(--text-dim); }
-.chat-msg.system .body { color: var(--text-dim); font-style: italic; }
+.chat-msg.whisper .ch {
+  color: var(--magenta);
+  border-color: oklch(0.5 0.2 0 / 0.4);
+}
+
+.chat-msg.party .ch {
+  color: var(--violet-light);
+  border-color: oklch(0.5 0.2 295 / 0.4);
+}
+
+.chat-msg .who {
+  font-weight: 700;
+  color: var(--text);
+  flex-shrink: 0;
+  white-space: nowrap;
+}
+
+.chat-msg.system .who {
+  color: var(--redmagenta);
+}
+
+.chat-msg.whisper .who {
+  color: var(--magenta);
+}
+
+.chat-msg.party .who {
+  color: var(--violet-light);
+}
+
+.chat-msg .body {
+  color: var(--text-dim);
+}
+
+.chat-msg.system .body {
+  color: var(--text-dim);
+  font-style: italic;
+}
 
 .chat-input-wrap {
   display: flex;
@@ -68,7 +119,9 @@
   height: 38px;
 }
 
-.chat-input-wrap:focus-within { border-color: var(--lime); }
+.chat-input-wrap:focus-within {
+  border-color: var(--redmagenta);
+}
 
 .chat-channel {
   display: flex;
@@ -79,14 +132,16 @@
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.08em;
-  color: var(--lime);
+  color: var(--redmagenta);
   border-right: 1px solid var(--line);
   cursor: pointer;
   background: var(--panel-inset);
   user-select: none;
 }
 
-.chat-channel:hover { background: var(--panel-hi); }
+.chat-channel:hover {
+  background: var(--panel-hi);
+}
 
 .chat-input {
   flex: 1;
@@ -99,16 +154,18 @@
   padding: 0 12px;
 }
 
-.chat-input::placeholder { color: var(--text-mute); }
+.chat-input::placeholder {
+  color: var(--text-mute);
+}
 
 .chat-send {
   display: grid;
   place-items: center;
   width: 60px;
-  background: var(--lime);
+  background: var(--redmagenta);
   border: none;
   cursor: pointer;
-  color: var(--lime-ink);
+  color: var(--redmagenta-ink);
   font-family: var(--font-display);
   font-weight: 800;
   font-size: 11px;
@@ -117,7 +174,9 @@
   border-left: 1px solid var(--line);
 }
 
-.chat-send:hover { background: oklch(0.72 0.27 18); }
+.chat-send:hover {
+  background: oklch(0.72 0.27 18);
+}
 
 .emoji-btn {
   width: 40px;
@@ -131,9 +190,23 @@
   font-size: 16px;
 }
 
-.emoji-btn:hover { color: var(--lime); }
+.emoji-btn:hover {
+  color: var(--redmagenta);
+}
 
-*::-webkit-scrollbar { width: 6px; height: 6px; }
-*::-webkit-scrollbar-track { background: transparent; }
-*::-webkit-scrollbar-thumb { background: var(--line); }
-*::-webkit-scrollbar-thumb:hover { background: var(--lime); }
+*::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+*::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+*::-webkit-scrollbar-thumb {
+  background: var(--line);
+}
+
+*::-webkit-scrollbar-thumb:hover {
+  background: var(--redmagenta);
+}
